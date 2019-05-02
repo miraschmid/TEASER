@@ -79,8 +79,7 @@ class VDICore(object):
         self.cooler_limit = [-1e10, -1e10, -1e10]
 
         # time setting for simulation
-        #self.timesteps = 60 * 60 * 24
-        self.timesteps = 24 * 365
+        self.timesteps = 60 * 60 * 24
 
         self.initial_air_temp = 295.15
         self.initial_inner_wall_temp = 295.15
@@ -161,8 +160,7 @@ class VDICore(object):
         """
         #  Todo: Cleanup docstring
 
-        #timesteps = 60 * 60 * 24
-        timesteps = 24 * 365
+        timesteps = 60 * 60 * 24
 
         #  Todo: Where to store t_balck_sky?
         # t_black_sky = np.zeros(timesteps) + 273.15
@@ -244,8 +242,7 @@ class VDICore(object):
 
         """
         #  FIXME: Deal with input values (to weather / project?)
-        #timesteps = 60 * 60 * 24
-        timesteps = 24 * 365
+        timesteps = 60 * 60 * 24
         dt = 3600
         initial_time = 0
 
@@ -733,8 +730,7 @@ class VDICore(object):
         """
 
         #  Fix number of timesteps
-        #timesteps = 24 * 60 * 60
-        timesteps = 24 * 365
+        timesteps = 24 * 60 * 60
         dt = 60
 
         #  Get building parameters
