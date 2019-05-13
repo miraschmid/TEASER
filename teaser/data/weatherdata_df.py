@@ -38,11 +38,11 @@ class WeatherDataDF(object):
         if self.path is None:
             index = np.arange(0, 31536000, 3600)
             self.weather_df = pd.DataFrame(index=index)
-            self.weather_df["air_temp[degC]"] = ""
-            self.weather_df["direct_radiation[W/m2]"] = ""
-            self.weather_df["diffuse_radiation[W/m2]"] = ""
-            self.weather_df["sky_radiation[W/m2]"] = ""
-            self.weather_df["earth_radiation[W/m2]"] = ""
+            self.weather_df["air_temp"] = ""
+            self.weather_df["direct_radiation"] = ""
+            self.weather_df["diffuse_radiation"] = ""
+            self.weather_df["sky_radiation"] = ""
+            self.weather_df["earth_radiation"] = ""
         else:
             self.load_weather(path=self.path)
 
@@ -68,8 +68,8 @@ class WeatherDataDF(object):
 
         index = np.arange(0, 31536000, 3600)
         self.weather_df = pd.DataFrame(index=index)
-        self.weather_df["air_temp[degC]"] = weather_data[:, 0]
-        self.weather_df["direct_radiation[W/m2]"] = weather_data[:, 1]
-        self.weather_df["diffuse_radiation[W/m2]"] = weather_data[:, 2]
-        self.weather_df["sky_radiation[W/m2]"] = weather_data[:, 3]
-        self.weather_df["earth_radiation[W/m2]"] = weather_data[:, 4]
+        self.weather_df["air_temp"] = weather_data[:, 0]
+        self.weather_df["direct_radiation"] = weather_data[:, 1]
+        self.weather_df["diffuse_radiation"] = weather_data[:, 2]
+        self.weather_df["sky_radiation"] = weather_data[:, 3]
+        self.weather_df["earth_radiation"] = weather_data[:, 4]
