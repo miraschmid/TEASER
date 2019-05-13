@@ -73,3 +73,34 @@ class WeatherDataDF(object):
         self.weather_df["diffuse_radiation"] = weather_data[:, 2]
         self.weather_df["sky_radiation"] = weather_data[:, 3]
         self.weather_df["earth_radiation"] = weather_data[:, 4]
+
+
+    def reindex_weather_df(self, format):
+        """Reindex weather_df DataFrame for given timestep
+           and interpolate unknown values
+
+        Parameters
+        ----------
+        timestep: string
+            Desired timestep
+            {"minutes", "seconds"}
+
+        """
+
+        if format == "minutes":
+            timestep = 60
+        elif format == "seconds":
+            timestep = 1
+        else:
+            raise ValueError("The format can either be 'minutes' or 'seconds'")
+
+        idx_new = np.arange(0, 31536000, timestep)
+
+        empty = False
+        if self.weather_df.empty:
+            empty = True
+
+        self.weather_df = self.weather_df.reindex(idx_new)
+        if not empty:
+            self.weather_df = self.weather_df.interpolate(method="linear")
+

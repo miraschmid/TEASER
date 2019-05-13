@@ -164,7 +164,7 @@ class VDICore(object):
 
         #  Todo: Where to store t_balck_sky?
         # t_black_sky = np.zeros(timesteps) + 273.15
-        t_dry_bulb = self.weather_data.air_temp  # in Kelvin
+        t_dry_bulb = self.weather_data.weather_df["air_temp"]  # in Kelvin TODO: in Kelvin?
 
         list_window_areas = []
         list_sunblind = []
@@ -273,8 +273,8 @@ class VDICore(object):
 
         # Get weather data
         #  TODO: Check weather
-        direct_rad = self.weather_data.direct_radiation
-        diffuse_rad = self.weather_data.diffuse_radiation
+        direct_rad = self.weather_data.weather_df["direct_radiation"]
+        diffuse_rad = self.weather_data.weather_df["diffuse_radiation"]
 
         geometry = self.get_geometry(
             initial_time=initial_time,
@@ -762,7 +762,7 @@ class VDICore(object):
         r_rest_ow = r_rest_ow + 1 / alpha_wall
 
         #  Get weather temperature of weather in Kelvin
-        outdoor_temp = self.weather_data.air_temp
+        outdoor_temp = self.weather_data.weather_df["air_temp"]
 
         # #  Get weather direct_radiation
         # direct_radiation = self.weather_data.direct_radiation
@@ -923,7 +923,7 @@ class VDICore(object):
             rhs[2] = c1_iw * t_iw_prev / dt
             rhs[3] = -q_solar_rad_to_in_wall[t] - q_loads_to_inner_wall[t]
             rhs[4] = (
-                -self.vent_rate[t] * heat_capac_air * density_air * outdoor_temp[t]
+                - self.vent_rate[t] * heat_capac_air * density_air * outdoor_temp[t*60]
                 - q_solar_conv[t]
                 - self.internal_gains[t]
             )

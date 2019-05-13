@@ -12,7 +12,7 @@ from teaser.project import Project
 from teaser.logic.buildingobjects.building import Building
 from teaser.logic.buildingobjects.thermalzone import ThermalZone
 from teaser.logic.buildingobjects.calculation.two_element import TwoElement
-from teaser.data.weatherdata import WeatherData
+from teaser.data.weatherdata_df import WeatherDataDF
 
 
 def prepare_thermal_zone(timesteps, room, weather=None):
@@ -35,8 +35,10 @@ def prepare_thermal_zone(timesteps, room, weather=None):
     """
 
     if weather is None:
-        weather = WeatherData()
-        weather.air_temp = np.zeros(timesteps) + 295.15
+        weather = WeatherDataDF()
+        weather.weather_df["air_temp"] = 295.15
+        weather.reindex_weather_df(format="minutes")
+        weather.weather_df = weather.weather_df[:timesteps]
 
     prj = Project()
     prj.weather_data = weather
