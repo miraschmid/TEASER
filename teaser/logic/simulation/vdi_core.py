@@ -28,6 +28,10 @@ class VDICore(object):
     ----------
     thermal_zone: instance of ThermalZone
         TEASER instance of ThermalZone
+    interval: int
+        Interval of timesteps in seconds {1, 60, 3600}
+    stoptime: int
+        Stoptime of calculation in seconds (should be a multiple of the interval)
     weather_data:  instance of WeatherData class
         TEASER isntance of WeatherData class containing TRY weather data.
     building: instance of Building
@@ -61,18 +65,38 @@ class VDICore(object):
         Set to True for additional debug output of simulation
     """
 
-    def __init__(self, thermal_zone):
+    def __init__(self, thermal_zone, interval=60, stoptime=86400):
         """Constructor of DataClass
 
         Parameters
         ----------
         thermal_zone: instance of ThermalZone
             TEASER instance of ThermalZone
+        interval: int
+            Interval of timesteps in seconds {1, 60, 3600}
+        stoptime: int
+            Stoptime of calculation in seconds
+            (should be a multiple of the interval)
+
         """
         self.thermal_zone = thermal_zone
         self.weather_data = self.thermal_zone.parent.parent.weather_data
         self.building = self.thermal_zone.parent
         self.room_air_temperature = None
+
+        cols = ["outdoor_temp",
+                "alpha_rad",
+                "e_solar_conv",
+                "q_solar_conv",
+                "q_solar_rad",
+                "q_solar_rad_to_in_wall",
+                "q_solar_rad_to_outer_wall",
+                "q_loads_rad",
+                "q_loads_to_inner_wall",
+                "q_loads_to_outer_wall"]
+
+        idx = np.arange(0, stoptime, interval)
+        self.sim_vars = pd.DataFrame(index=idx, columns=cols)
 
         #  Todo: Get heater limits from thermal_zone
         self.heater_limit = [1e10, 1e10, 1e10]
