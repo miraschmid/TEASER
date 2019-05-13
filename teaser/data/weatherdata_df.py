@@ -97,10 +97,12 @@ class WeatherDataDF(object):
         idx_new = np.arange(0, 31536000, timestep)
 
         empty = False
-        if self.weather_df.empty:
+        if not np.any(self.weather_df):
             empty = True
 
         self.weather_df = self.weather_df.reindex(idx_new)
         if not empty:
             self.weather_df = self.weather_df.interpolate(method="linear")
+
+
 

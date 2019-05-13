@@ -10,7 +10,7 @@ from teaser.logic.simulation.vdi_core import VDICore
 import teaser.examples.verification.vdi6007_testcases.vdi6007_case01 as vdic
 from teaser.examples.verification.vdi6007_testcases.vdi6007shared import \
     prepare_thermal_zone, hourly_average, plot_result
-from teaser.data.weatherdata import WeatherData
+from teaser.data.weatherdata_df import WeatherDataDF
 
 
 def run_case9(plot_res=False):
@@ -75,8 +75,10 @@ def run_case9(plot_res=False):
     t_black_sky_adj = np.repeat(t_black_sky_in, times_per_hour)
     t_black_sky = np.tile(t_black_sky_adj, 60)
 
-    weather = WeatherData()
-    weather.air_temp = weatherTemperature
+    weather = WeatherDataDF()
+    weather.reindex_weather_df(format="minutes")
+    weather.weather_df = weather.weather_df[:timesteps]
+    weather.weather_df["air_temp"] = weatherTemperature
 
     tz = prepare_thermal_zone(timesteps, room="S2", weather=weather)
 

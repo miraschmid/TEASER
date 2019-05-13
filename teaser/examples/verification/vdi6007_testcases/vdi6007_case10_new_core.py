@@ -13,7 +13,7 @@ from teaser.logic.buildingobjects.calculation.two_element import TwoElement
 from teaser.logic.simulation.vdi_core import VDICore
 
 # import customized weather class
-from teaser.data.weatherdata import WeatherData
+from teaser.data.weatherdata_df import WeatherDataDF
 
 import teaser.examples.verification.vdi6007_testcases.vdi6007_case01 as vdic
 from teaser.examples.verification.vdi6007_testcases.vdi6007shared import \
@@ -74,8 +74,10 @@ def run_case10(plot_res=False):
     t_outside_adj = np.repeat(t_outside, times_per_hour)
     weatherTemperature = np.tile(t_outside_adj, 60)
 
-    weather = WeatherData()
-    weather.air_temp = weatherTemperature
+    weather = WeatherDataDF()
+    weather.reindex_weather_df(format="minutes")
+    weather.weather_df = weather.weather_df[:timesteps]
+    weather.weather_df["air_temp"] = weatherTemperature
 
     prj = Project()
     prj.weather_data = weather
