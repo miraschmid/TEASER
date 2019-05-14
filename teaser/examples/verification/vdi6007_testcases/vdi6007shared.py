@@ -37,8 +37,8 @@ def prepare_thermal_zone(timesteps, room, weather=None):
     if weather is None:
         weather = WeatherDataDF()
         weather.weather_df["air_temp"] = 295.15
-        weather.reindex_weather_df(format="minutes")
-        weather.weather_df = weather.weather_df[:timesteps]
+        weather.reindex_weather_df(format="seconds")
+        weather.weather_df = weather.weather_df.loc[:timesteps-1]
 
     prj = Project()
     prj.weather_data = weather

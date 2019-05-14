@@ -66,7 +66,7 @@ def run_case12(plot_res=False):
     ventRate = np.tile(ventRate, 60)
 
     weather = WeatherDataDF()
-    weather.reindex_weather_df(format="minutes")
+    weather.reindex_weather_df(format="seconds")
     weather.weather_df = weather.weather_df[:timesteps]
     weather.weather_df["air_temp"] = weatherTemperature
 

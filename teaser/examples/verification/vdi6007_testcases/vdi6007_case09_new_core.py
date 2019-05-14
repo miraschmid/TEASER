@@ -76,7 +76,7 @@ def run_case9(plot_res=False):
     t_black_sky = np.tile(t_black_sky_adj, 60)
 
     weather = WeatherDataDF()
-    weather.reindex_weather_df(format="minutes")
+    weather.reindex_weather_df(format="seconds")
     weather.weather_df = weather.weather_df[:timesteps]
     weather.weather_df["air_temp"] = weatherTemperature
 

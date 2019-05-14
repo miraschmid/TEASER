@@ -75,7 +75,7 @@ def run_case10(plot_res=False):
     weatherTemperature = np.tile(t_outside_adj, 60)
 
     weather = WeatherDataDF()
-    weather.reindex_weather_df(format="minutes")
+    weather.reindex_weather_df(format="seconds")
     weather.weather_df = weather.weather_df[:timesteps]
     weather.weather_df["air_temp"] = weatherTemperature
 
