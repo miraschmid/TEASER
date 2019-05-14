@@ -68,7 +68,7 @@ class VDICore(object):
 
     """
 
-    def __init__(self, thermal_zone, interval=60, stoptime=86400):
+    def __init__(self, thermal_zone, interval=1, stoptime=86400):
         """Constructor of DataClass
 
         Parameters
@@ -91,9 +91,9 @@ class VDICore(object):
 
         cols = ["outdoor_temp",
                 "alpha_rad",
-                "e_solar_conv",
+                "e_solar_conv",         #TODO: multidimensional array! e_solar_rad too
                 "q_solar_conv",
-                "q_solar_rad",
+                "q_solar_rad",          #TODO: multidimensional
                 "q_solar_rad_to_in_wall",
                 "q_solar_rad_to_outer_wall",
                 "q_loads_rad",
@@ -758,10 +758,6 @@ class VDICore(object):
                 Additional result data that hopefully helps with debugging
         """
 
-        #  Fix number of timesteps
-        #timesteps = 24 * 60 * 60
-        #dt = 60
-
         #  Get building parameters
         r1_iw = self.thermal_zone.model_attr.r1_iw
         c1_iw = self.thermal_zone.model_attr.c1_iw
@@ -791,7 +787,7 @@ class VDICore(object):
         r_rest_ow = r_rest_ow + 1 / alpha_wall
 
         #  Get weather temperature of weather in Kelvin
-        outdoor_temp = self.weather_data.weather_df["air_temp"]
+        self.sim_vars["outdoor_temp"] = self.weather_data.weather_df["air_temp"]
 
         # #  Get weather direct_radiation
         # direct_radiation = self.weather_data.direct_radiation
@@ -815,7 +811,7 @@ class VDICore(object):
 
         #  Radiative heat transfer coefficient between inner and outer walls
         #  in W/m2K
-        alpha_rad = (
+        self.sim_vars["alpha_rad"] = (
             np.zeros(self.stoptime) + self.thermal_zone.model_attr.alpha_rad_inner_mean
         )
 
@@ -829,7 +825,7 @@ class VDICore(object):
                 * weighted_g_value
                 * transparent_areas[i]
             )
-        q_solar_conv = np.sum(e_solar_conv, axis=1)
+        self.sim_vars["q_solar_conv"] = np.sum(e_solar_conv, axis=1)
 
         # splitters:
         # on each splitter: one output goes to outer wall, one goes to inner
@@ -853,18 +849,18 @@ class VDICore(object):
             for j in range(split_fac_solar.shape[0]):
                 q_solar_rad[:, i, j] = -e_solar_rad[:, i] * split_fac_solar[j, i]
 
-        q_solar_rad_to_in_wall = np.sum(q_solar_rad[:, :, 1], axis=1)
-        q_solar_rad_to_outer_wall = np.sum(q_solar_rad[:, :, 0], axis=1)
+        self.sim_vars["q_solar_rad_to_in_wall"] = np.sum(q_solar_rad[:, :, 1], axis=1)
+        self.sim_vars["q_solar_rad_to_outer_wall"] = np.sum(q_solar_rad[:, :, 0], axis=1)
 
-        #  Todo: What is krad?
+        # TODO: What is krad?
         krad = 1
 
         # therm. splitter loads radiative:
-        q_loads_rad = krad * self.internal_gains_rad
+        self.sim_vars["q_loads_rad"] = krad * self.internal_gains_rad
         split_fac_loads = self.calc_splitfactors(1, area_ar, [0], [0])
 
-        q_loads_to_inner_wall = q_loads_rad * split_fac_loads[1, 0]
-        q_loads_to_outer_wall = q_loads_rad * split_fac_loads[0, 0]
+        self.sim_vars["q_loads_to_inner_wall"] = self.sim_vars["q_loads_rad"] * split_fac_loads[1, 0]
+        self.sim_vars["q_loads_to_outer_wall"] = self.sim_vars["q_loads_rad"] * split_fac_loads[0, 0]
 
         # -----------------------Attention revision neccessary!
         # -----------------------Attention revision neccessary!
@@ -916,19 +912,19 @@ class VDICore(object):
             A[0, 1] = -1 / r1_ow
             A[1, 0] = 1 / r1_ow
             A[1, 1] = (
-                -min(area_o_tot, area_iw) * alpha_rad[t]
+                -min(area_o_tot, area_iw) * self.sim_vars.at[t, "alpha_rad"]
                 - area_o_tot * alpha_comb_inner_ow
                 - 1 / r1_ow
             )
-            A[1, 3] = min(area_o_tot, area_iw) * alpha_rad[t]
+            A[1, 3] = min(area_o_tot, area_iw) * self.sim_vars.at[t, "alpha_rad"]
             A[1, 4] = area_o_tot * alpha_comb_inner_ow
             A[1, 8] = 1
             A[2, 2] = c1_iw / self.interval + 1 / r1_iw
             A[2, 3] = -1 / r1_iw
-            A[3, 1] = min(area_o_tot, area_iw) * alpha_rad[t]
+            A[3, 1] = min(area_o_tot, area_iw) * self.sim_vars.at[t, "alpha_rad"]
             A[3, 2] = 1 / r1_iw
             A[3, 3] = (
-                -min(area_o_tot, area_iw) * alpha_rad[t]
+                -min(area_o_tot, area_iw) * self.sim_vars.at[t, "alpha_rad"]
                 - area_iw * alpha_comb_inner_iw
                 - 1 / r1_iw
             )
@@ -948,12 +944,15 @@ class VDICore(object):
 
             # Fill right hand side
             rhs[0] = self.equal_air_temp[t] / r_rest_ow + c1_ow * t_ow_prev / self.interval
-            rhs[1] = -q_solar_rad_to_outer_wall[t] - q_loads_to_outer_wall[t]
+            rhs[1] = - self.sim_vars.at[t, "q_solar_rad_to_outer_wall"] \
+                     - self.sim_vars.at[t, "q_loads_to_outer_wall"]
             rhs[2] = c1_iw * t_iw_prev / self.interval
-            rhs[3] = -q_solar_rad_to_in_wall[t] - q_loads_to_inner_wall[t]
+            rhs[3] = - self.sim_vars.at[t, "q_solar_rad_to_in_wall"] \
+                     - self.sim_vars.at[t, "q_loads_to_inner_wall"]
             rhs[4] = (
-                - self.vent_rate[t] * heat_capac_air * density_air * outdoor_temp[t]
-                - q_solar_conv[t]
+                - self.vent_rate[t] * heat_capac_air * density_air
+                * self.sim_vars.at[t, "outdoor_temp"]
+                - self.sim_vars.at[t, "q_solar_conv"]
                 - self.internal_gains[t]
             )
             rhs[5] = density_air * heat_capac_air * volume * t_air_prev / self.interval
