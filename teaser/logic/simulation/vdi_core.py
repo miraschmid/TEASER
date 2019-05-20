@@ -68,7 +68,7 @@ class VDICore(object):
 
     """
 
-    def __init__(self, thermal_zone, interval=60, stoptime=86400):
+    def __init__(self, thermal_zone, interval=1, stoptime=86400):
         """Constructor of DataClass
 
         Parameters
@@ -89,16 +89,18 @@ class VDICore(object):
         self.building = self.thermal_zone.parent
         self.room_air_temperature = None
 
-        cols = ["outdoor_temp",
-                "alpha_rad",
-                "e_solar_conv",
-                "q_solar_conv",
-                "q_solar_rad",
-                "q_solar_rad_to_in_wall",
-                "q_solar_rad_to_outer_wall",
-                "q_loads_rad",
-                "q_loads_to_inner_wall",
-                "q_loads_to_outer_wall"]
+        cols = [
+            "outdoor_temp",
+            # "alpha_rad",
+            # "e_solar_conv",
+            # "q_solar_conv",
+            # "q_solar_rad",
+            # "q_solar_rad_to_in_wall",
+            # "q_solar_rad_to_outer_wall",
+            # "q_loads_rad",
+            # "q_loads_to_inner_wall",
+            # "q_loads_to_outer_wall"
+        ]
 
         idx = np.arange(0, stoptime, interval)
         self.sim_vars = pd.DataFrame(index=idx, columns=cols)
@@ -108,7 +110,7 @@ class VDICore(object):
         self.cooler_limit = [-1e10, -1e10, -1e10]
 
         # time setting for simulation
-        self.timesteps = 60 * 60 * 24
+        # self.timesteps = 60 * 60 * 24
 
         self.initial_air_temp = 295.15
         self.initial_inner_wall_temp = 295.15
@@ -117,8 +119,8 @@ class VDICore(object):
         self.heater_order = np.array([1, 2, 3])
         self.cooler_order = np.array([1, 2, 3])
 
-        self.internal_gains = np.zeros(self.timesteps)
-        self.internal_gains_rad = np.zeros(self.timesteps)
+        self.internal_gains = np.zeros(self.stoptime)
+        self.internal_gains_rad = np.zeros(self.stoptime)
 
         self.solar_rad_in = np.transpose(self._solar_radiation())
         # self.equal_air_temp = self._eq_air_temp(h_sol=self.solar_rad_in)
@@ -155,9 +157,9 @@ class VDICore(object):
             + 273.15
         )
         self.t_set_heating = np.tile(self.t_set_heat_day, 365)
-        self.t_set_cooling = np.zeros(self.timesteps) + 273.15 + 1000
+        self.t_set_cooling = np.zeros(self.stoptime) + 273.15 + 1000
 
-        self.vent_rate = np.zeros(self.timesteps) + (
+        self.vent_rate = np.zeros(self.stoptime) + (
             self.thermal_zone.volume * self.thermal_zone.infiltration_rate / 3600
         )
         # self.heater_order = np.array([1, 2, 3])
@@ -193,7 +195,9 @@ class VDICore(object):
 
         #  Todo: Where to store t_balck_sky?
         # t_black_sky = np.zeros(timesteps) + 273.15
-        t_dry_bulb = self.weather_data.weather_df["air_temp"]  # in Kelvin TODO: in Kelvin?
+        t_dry_bulb = self.weather_data.weather_df[
+            "air_temp"
+        ]  # in Kelvin TODO: in Kelvin?
 
         list_window_areas = []
         list_sunblind = []
@@ -759,8 +763,8 @@ class VDICore(object):
         """
 
         #  Fix number of timesteps
-        #timesteps = 24 * 60 * 60
-        #dt = 60
+        # timesteps = 24 * 60 * 60
+        # dt = 60
 
         #  Get building parameters
         r1_iw = self.thermal_zone.model_attr.r1_iw
@@ -791,7 +795,7 @@ class VDICore(object):
         r_rest_ow = r_rest_ow + 1 / alpha_wall
 
         #  Get weather temperature of weather in Kelvin
-        outdoor_temp = self.weather_data.weather_df["air_temp"]
+        self.sim_vars["outdoor_temp"] = self.weather_data.weather_df["air_temp"]
 
         # #  Get weather direct_radiation
         # direct_radiation = self.weather_data.direct_radiation
@@ -906,13 +910,15 @@ class VDICore(object):
         t_iw_prev = self.initial_inner_wall_temp
         t_air_prev = self.initial_air_temp
 
+        dt = 60
+
         for t in range(self.stoptime):
             # Common equations
             A = np.zeros((9, 9))
             rhs = np.zeros(A.shape[0])
 
             # Fill matrix coefficients
-            A[0, 0] = c1_ow / self.interval + 1 / r_rest_ow + 1 / r1_ow
+            A[0, 0] = c1_ow / dt + 1 / r_rest_ow + 1 / r1_ow
             A[0, 1] = -1 / r1_ow
             A[1, 0] = 1 / r1_ow
             A[1, 1] = (
@@ -923,7 +929,7 @@ class VDICore(object):
             A[1, 3] = min(area_o_tot, area_iw) * alpha_rad[t]
             A[1, 4] = area_o_tot * alpha_comb_inner_ow
             A[1, 8] = 1
-            A[2, 2] = c1_iw / self.interval + 1 / r1_iw
+            A[2, 2] = c1_iw / dt + 1 / r1_iw
             A[2, 3] = -1 / r1_iw
             A[3, 1] = min(area_o_tot, area_iw) * alpha_rad[t]
             A[3, 2] = 1 / r1_iw
@@ -943,20 +949,23 @@ class VDICore(object):
             )
             A[4, 5] = -1
             A[4, 6] = 1
-            A[5, 4] = volume * heat_capac_air * density_air / self.interval
+            A[5, 4] = volume * heat_capac_air * density_air / dt
             A[5, 5] = -1
 
             # Fill right hand side
-            rhs[0] = self.equal_air_temp[t] / r_rest_ow + c1_ow * t_ow_prev / self.interval
+            rhs[0] = self.equal_air_temp[t] / r_rest_ow + c1_ow * t_ow_prev / dt
             rhs[1] = -q_solar_rad_to_outer_wall[t] - q_loads_to_outer_wall[t]
-            rhs[2] = c1_iw * t_iw_prev / self.interval
+            rhs[2] = c1_iw * t_iw_prev / dt
             rhs[3] = -q_solar_rad_to_in_wall[t] - q_loads_to_inner_wall[t]
             rhs[4] = (
-                - self.vent_rate[t] * heat_capac_air * density_air * outdoor_temp[t]
+                -self.vent_rate[t]
+                * heat_capac_air
+                * density_air
+                * self.sim_vars.at[t, "outdoor_temp"]
                 - q_solar_conv[t]
                 - self.internal_gains[t]
             )
-            rhs[5] = density_air * heat_capac_air * volume * t_air_prev / self.interval
+            rhs[5] = density_air * heat_capac_air * volume * t_air_prev / dt
 
             # Calculate current time step
             x = self.calc_timestep(
