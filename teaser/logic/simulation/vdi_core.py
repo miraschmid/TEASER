@@ -33,7 +33,7 @@ class VDICore(object):
     stoptime: int
         Stoptime of calculation in seconds (should be a multiple of the interval)
     sim_vars: pandas.DataFrame
-        Contains the simulation variables
+        Simulation variables
     weather_data:  instance of WeatherData class
         TEASER isntance of WeatherData class containing TRY weather data.
     building: instance of Building
@@ -82,6 +82,7 @@ class VDICore(object):
             (should be a multiple of the interval)
 
         """
+
         self.thermal_zone = thermal_zone
         self.interval = interval
         self.stoptime = stoptime
@@ -89,18 +90,33 @@ class VDICore(object):
         self.building = self.thermal_zone.parent
         self.room_air_temperature = None
 
-        cols = ["outdoor_temp",
-                "alpha_rad",
-                "e_solar_conv",         #TODO: multidimensional array! e_solar_rad too
-                "q_solar_conv",
-                "q_solar_rad",          #TODO: multidimensional
-                "q_solar_rad_to_in_wall",
-                "q_solar_rad_to_outer_wall",
-                "q_loads_rad",
-                "q_loads_to_inner_wall",
-                "q_loads_to_outer_wall"]
+        cols = [
+            "outdoor_temp",
+            "alpha_rad",
+            # "e_solar_conv",  # TODO: multidimensional array! e_solar_rad too
+            "q_solar_conv",
+            # "q_solar_rad",  # TODO: multidimensional
+            "q_solar_rad_to_in_wall",
+            "q_solar_rad_to_outer_wall",
+            "q_loads_rad",
+            "q_loads_to_inner_wall",
+            "q_loads_to_outer_wall",
+            "equal_air_temp",
+            "vent_rate",
+            "internal_gains",
+            "internal_gains_rad",
+            "t_ow",
+            "t_owi",
+            "t_iw",
+            "t_iwi",
+            "t_air",
+            "q_air",
+            "q_air_hc",
+            "q_iw_hc",
+            "q_ow_hc",
+        ]
 
-        idx = np.arange(0, stoptime, interval)
+        idx = np.arange(0, self.stoptime, self.interval)
         self.sim_vars = pd.DataFrame(index=idx, columns=cols)
 
         #  Todo: Get heater limits from thermal_zone
@@ -117,8 +133,8 @@ class VDICore(object):
         self.heater_order = np.array([1, 2, 3])
         self.cooler_order = np.array([1, 2, 3])
 
-        self.internal_gains = np.zeros(self.timesteps)
-        self.internal_gains_rad = np.zeros(self.timesteps)
+        self.sim_vars["internal_gains"] = np.zeros(self.timesteps)
+        self.sim_vars["internal_gains_rad"] = np.zeros(self.timesteps)
 
         self.solar_rad_in = np.transpose(self._solar_radiation())
         # self.equal_air_temp = self._eq_air_temp(h_sol=self.solar_rad_in)
@@ -157,7 +173,7 @@ class VDICore(object):
         self.t_set_heating = np.tile(self.t_set_heat_day, 365)
         self.t_set_cooling = np.zeros(self.timesteps) + 273.15 + 1000
 
-        self.vent_rate = np.zeros(self.timesteps) + (
+        self.sim_vars["vent_rate"] = np.zeros(self.timesteps) + (
             self.thermal_zone.volume * self.thermal_zone.infiltration_rate / 3600
         )
         # self.heater_order = np.array([1, 2, 3])
@@ -193,7 +209,9 @@ class VDICore(object):
 
         #  Todo: Where to store t_balck_sky?
         # t_black_sky = np.zeros(timesteps) + 273.15
-        t_dry_bulb = self.weather_data.weather_df["air_temp"]  # in Kelvin TODO: in Kelvin?
+        t_dry_bulb = self.weather_data.weather_df[
+            "air_temp"
+        ]  # in Kelvin TODO: in Kelvin?
 
         list_window_areas = []
         list_sunblind = []
@@ -850,17 +868,23 @@ class VDICore(object):
                 q_solar_rad[:, i, j] = -e_solar_rad[:, i] * split_fac_solar[j, i]
 
         self.sim_vars["q_solar_rad_to_in_wall"] = np.sum(q_solar_rad[:, :, 1], axis=1)
-        self.sim_vars["q_solar_rad_to_outer_wall"] = np.sum(q_solar_rad[:, :, 0], axis=1)
+        self.sim_vars["q_solar_rad_to_outer_wall"] = np.sum(
+            q_solar_rad[:, :, 0], axis=1
+        )
 
         # TODO: What is krad?
         krad = 1
 
         # therm. splitter loads radiative:
-        self.sim_vars["q_loads_rad"] = krad * self.internal_gains_rad
+        self.sim_vars["q_loads_rad"] = krad * self.sim_vars["internal_gains_rad"]
         split_fac_loads = self.calc_splitfactors(1, area_ar, [0], [0])
 
-        self.sim_vars["q_loads_to_inner_wall"] = self.sim_vars["q_loads_rad"] * split_fac_loads[1, 0]
-        self.sim_vars["q_loads_to_outer_wall"] = self.sim_vars["q_loads_rad"] * split_fac_loads[0, 0]
+        self.sim_vars["q_loads_to_inner_wall"] = (
+            self.sim_vars["q_loads_rad"] * split_fac_loads[1, 0]
+        )
+        self.sim_vars["q_loads_to_outer_wall"] = (
+            self.sim_vars["q_loads_rad"] * split_fac_loads[0, 0]
+        )
 
         # -----------------------Attention revision neccessary!
         # -----------------------Attention revision neccessary!
@@ -887,15 +911,15 @@ class VDICore(object):
         # -----------------------Attention revision neccessary!
 
         # Results' initialization
-        t_ow = []
-        t_owi = []
-        t_iw = []
-        t_iwi = []
-        t_air = []
-        q_air = []
-        q_air_hc = []
-        q_iw_hc = []
-        q_ow_hc = []
+        # t_ow = []
+        # t_owi = []
+        # t_iw = []
+        # t_iwi = []
+        # t_air = []
+        # q_air = []
+        # q_air_hc = []
+        # q_iw_hc = []
+        # q_ow_hc = []
 
         # Initial temperatures
         t_ow_prev = self.initial_outer_wall_temp
@@ -935,7 +959,7 @@ class VDICore(object):
             A[4, 4] = (
                 -area_o_tot * alpha_comb_inner_ow
                 - area_iw * alpha_comb_inner_iw
-                - self.vent_rate[t] * heat_capac_air * density_air
+                - self.sim_vars.at[t, "vent_rate"] * heat_capac_air * density_air
             )
             A[4, 5] = -1
             A[4, 6] = 1
@@ -943,17 +967,26 @@ class VDICore(object):
             A[5, 5] = -1
 
             # Fill right hand side
-            rhs[0] = self.equal_air_temp[t] / r_rest_ow + c1_ow * t_ow_prev / self.interval
-            rhs[1] = - self.sim_vars.at[t, "q_solar_rad_to_outer_wall"] \
-                     - self.sim_vars.at[t, "q_loads_to_outer_wall"]
+            rhs[0] = (
+                self.sim_vars.at[t, "equal_air_temp"] / r_rest_ow
+                + c1_ow * t_ow_prev / self.interval
+            )
+            rhs[1] = (
+                -self.sim_vars.at[t, "q_solar_rad_to_outer_wall"]
+                - self.sim_vars.at[t, "q_loads_to_outer_wall"]
+            )
             rhs[2] = c1_iw * t_iw_prev / self.interval
-            rhs[3] = - self.sim_vars.at[t, "q_solar_rad_to_in_wall"] \
-                     - self.sim_vars.at[t, "q_loads_to_inner_wall"]
+            rhs[3] = (
+                -self.sim_vars.at[t, "q_solar_rad_to_in_wall"]
+                - self.sim_vars.at[t, "q_loads_to_inner_wall"]
+            )
             rhs[4] = (
-                - self.vent_rate[t] * heat_capac_air * density_air
+                -self.sim_vars.at[t, "vent_rate"]
+                * heat_capac_air
+                * density_air
                 * self.sim_vars.at[t, "outdoor_temp"]
                 - self.sim_vars.at[t, "q_solar_conv"]
-                - self.internal_gains[t]
+                - self.sim_vars.at[t, "internal_gains"]
             )
             rhs[5] = density_air * heat_capac_air * volume * t_air_prev / self.interval
 
@@ -970,42 +1003,42 @@ class VDICore(object):
             )
 
             # Retrieve results
-            t_ow.append(x[0])
-            t_owi.append(x[1])
-            t_iw.append(x[2])
-            t_iwi.append(x[3])
-            t_air.append(x[4])
-            q_air.append(x[5])
-            q_air_hc.append(x[6])
-            q_iw_hc.append(x[7])
-            q_ow_hc.append(x[8])
+            self.sim_vars.at[t, "t_ow"] = x[0]
+            self.sim_vars.at[t, "t_owi"] = x[1]
+            self.sim_vars.at[t, "t_iw"] = x[2]
+            self.sim_vars.at[t, "t_iwi"] = x[3]
+            self.sim_vars.at[t, "t_air"] = x[4]
+            self.sim_vars.at[t, "q_air"] = x[5]
+            self.sim_vars.at[t, "q_air_hc"] = x[6]
+            self.sim_vars.at[t, "q_iw_hc"] = x[7]
+            self.sim_vars.at[t, "q_ow_hc"] = x[8]
 
             # Update initial temperatures
             t_ow_prev = x[0]
             t_iw_prev = x[2]
             t_air_prev = x[4]
 
-        data_debug = pd.DataFrame(
-            data={
-                "t_ow": t_ow,
-                "t_owi": t_owi,
-                "t_iw": t_iw,
-                "t_iwi": t_iwi,
-                "t_air": t_air,
-                "q_air": q_air,
-                "q_air_hc": q_air_hc,
-                "q_iw_hc": q_iw_hc,
-                "q_ow_hc": q_ow_hc,
-            }
-        )
+        # data_debug = pd.DataFrame(
+        #     data={
+        #         "t_ow": t_ow,
+        #         "t_owi": t_owi,
+        #         "t_iw": t_iw,
+        #         "t_iwi": t_iwi,
+        #         "t_air": t_air,
+        #         "q_air": q_air,
+        #         "q_air_hc": q_air_hc,
+        #         "q_iw_hc": q_iw_hc,
+        #         "q_ow_hc": q_ow_hc,
+        #     }
+        # )
 
         # self.indoor_air_temperature = np.array(t_air)
         # self.q_flow_heater_cooler = np.array(q_air_hc)
 
         if self.debug is False:
-            return np.array(t_air), np.array(q_air_hc)
+            return self.sim_vars["t_air"], self.sim_vars["q_air_hc"]
         elif self.debug is True:
-            return np.array(t_air), np.array(q_air_hc) + np.array(q_iw_hc), data_debug
+            return self.sim_vars
 
     def calc_splitfactors(self, cols, a_array, a_ext, a_win):
         """
