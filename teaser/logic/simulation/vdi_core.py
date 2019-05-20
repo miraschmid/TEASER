@@ -133,8 +133,8 @@ class VDICore(object):
         self.heater_order = np.array([1, 2, 3])
         self.cooler_order = np.array([1, 2, 3])
 
-        self.sim_vars["internal_gains"] = np.zeros(self.timesteps)
-        self.sim_vars["internal_gains_rad"] = np.zeros(self.timesteps)
+        self.sim_vars["internal_gains"] = 0
+        self.sim_vars["internal_gains_rad"] = 0
 
         self.solar_rad_in = np.transpose(self._solar_radiation())
         # self.equal_air_temp = self._eq_air_temp(h_sol=self.solar_rad_in)
@@ -173,7 +173,7 @@ class VDICore(object):
         self.t_set_heating = np.tile(self.t_set_heat_day, 365)
         self.t_set_cooling = np.zeros(self.timesteps) + 273.15 + 1000
 
-        self.sim_vars["vent_rate"] = np.zeros(self.timesteps) + (
+        self.sim_vars["vent_rate"] = 0 + (
             self.thermal_zone.volume * self.thermal_zone.infiltration_rate / 3600
         )
         # self.heater_order = np.array([1, 2, 3])

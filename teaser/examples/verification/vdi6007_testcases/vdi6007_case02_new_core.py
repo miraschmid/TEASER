@@ -36,7 +36,7 @@ def run_case2(plot_res=False):
     tz = prepare_thermal_zone(timesteps, room="S1")
 
     calc = VDICore(tz)
-    calc.sim_vars["equal_air_temp"] = np.zeros(timesteps) + 295.15
+    calc.sim_vars["equal_air_temp"] = 295.15
     calc.solar_rad_in = np.zeros((timesteps, 1))
 
     calc.t_set_heating = np.zeros(timesteps)  # in Kelvin
