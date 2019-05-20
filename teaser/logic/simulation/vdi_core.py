@@ -1378,7 +1378,6 @@ class VDICore(object):
                     result = x_cooling_1
 
             elif np.argmax(cooler_order == 1) == 1 and cooler_limit[1] < 0:
-                print("Correct entry")
                 x_cooling_1 = self._calc_heatflow(
                     A,
                     rhs,
