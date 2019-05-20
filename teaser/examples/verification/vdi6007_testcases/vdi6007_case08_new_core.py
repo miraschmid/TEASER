@@ -98,7 +98,7 @@ def run_case8(plot_res=False):
 
     calc.solar_rad_in = solarRad_win_in
 
-    calc.equal_air_temp = calc._eq_air_temp(
+    calc.sim_vars["equal_air_temp"] = calc._eq_air_temp(
         h_sol=solarRad_wall_tiled,
         t_black_sky=t_black_sky)
 
