@@ -98,7 +98,7 @@ def run_case11(plot_res=False):
     tz.infiltration_rate = 0  # No effect
 
     calc = VDICore(tz)
-    calc.equal_air_temp = np.zeros(timesteps) + 295.15
+    calc.sim_vars["equal_air_temp"] = np.zeros(timesteps) + 295.15
     calc.solar_rad_in = np.zeros((timesteps, 1))
 
     calc.t_set_heating = prepare_set_temperature(timesteps_day)
@@ -113,13 +113,13 @@ def run_case11(plot_res=False):
     calc.cooler_limit[:, 1] = -500
     calc.cooler_order = np.array([2, 1, 3])
 
-    calc.internal_gains_rad = prepare_internal_gains_rad(timesteps_day)
+    calc.sim_vars["internal_gains_rad"] = prepare_internal_gains_rad(timesteps_day)
 
     calc.debug = True
-    t_air, q_air_hc, data_debug = calc.simulate()
+    sim_vars = calc.simulate()
 
-    T_air_mean = hourly_average(data=t_air - 273.15, times_per_hour=times_per_hour)
-    Q_hc_mean = hourly_average(data=q_air_hc, times_per_hour=times_per_hour)
+    T_air_mean = hourly_average(data=sim_vars["t_air"] - 273.15, times_per_hour=times_per_hour)
+    Q_hc_mean = hourly_average(data=sim_vars["q_air_hc"], times_per_hour=times_per_hour)
 
     Q_hc_1 = Q_hc_mean[0:24]
     Q_hc_10 = Q_hc_mean[216:240]
@@ -185,7 +185,7 @@ def run_case11(plot_res=False):
             / "case-11"
         )
         dir_img.mkdir(exist_ok=True, parents=True)
-        plot_debug_data(data_debug, "t_ow", dir_img / "debug-case-11-t_ow.png")
+        plot_debug_data(sim_vars["t_ow"], "t_ow", dir_img / "debug-case-11-t_ow.png")
 
 
     max_dev_1_temp = np.max(np.abs(T_air_1 - T_air_ref_1))

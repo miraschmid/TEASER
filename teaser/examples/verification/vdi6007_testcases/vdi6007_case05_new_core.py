@@ -76,10 +76,10 @@ def run_case5(plot_res=False):
     calc.heater_limit = np.zeros((timesteps, 3)) + 1e10
     calc.cooler_limit = np.zeros((timesteps, 3)) - 1e10
 
-    calc.internal_gains_rad = source_igRad
-    calc.internal_gains = Q_ig
+    calc.sim_vars["internal_gains_rad"] = source_igRad
+    calc.sim_vars["internal_gains"] = Q_ig
 
-    calc.equal_air_temp = equalAirTemp
+    calc.sim_vars["equal_air_temp"] = equalAirTemp
     calc.solar_rad_in = solarRad_in
 
     t_air, q_air_hc = calc.simulate()

@@ -49,7 +49,7 @@ def run_case1(plot_res=False):
     tz = prepare_thermal_zone(timesteps, room="S1")
 
     calc = VDICore(tz)
-    calc.equal_air_temp = np.zeros(timesteps) + 295.15
+    calc.sim_vars["equal_air_temp"] = np.zeros(timesteps) + 295.15
     calc.solar_rad_in = np.zeros((timesteps, 1))
 
     calc.t_set_heating = np.zeros(timesteps)  # in Kelvin
@@ -63,7 +63,7 @@ def run_case1(plot_res=False):
         q_ig[q] = 1000
     q_ig = np.tile(q_ig, 60)
 
-    calc.internal_gains = q_ig
+    calc.sim_vars["internal_gains"] = q_ig
 
     t_air, q_air_hc = calc.simulate()
 

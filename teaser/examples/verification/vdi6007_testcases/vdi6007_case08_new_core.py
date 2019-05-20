@@ -93,8 +93,8 @@ def run_case8(plot_res=False):
     calc.heater_limit = np.zeros((timesteps, 3)) + 1e10
     calc.cooler_limit = np.zeros((timesteps, 3)) - 1e10
 
-    calc.internal_gains_rad = source_igRad
-    calc.internal_gains = Q_ig
+    calc.sim_vars["internal_gains_rad"] = source_igRad
+    calc.sim_vars["internal_gains"] = Q_ig
 
     calc.solar_rad_in = solarRad_win_in
 

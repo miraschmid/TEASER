@@ -128,7 +128,7 @@ def run_case10(plot_res=False):
     calc.initial_outer_wall_temp = 273.15 + 17.6
     calc.initial_inner_wall_temp = 273.15 + 17.6
 
-    calc.equal_air_temp = np.zeros(timesteps) + 295.15
+    calc.sim_vars["equal_air_temp"] = np.zeros(timesteps) + 295.15
 
     calc.t_set_heating = np.zeros(timesteps)  # in Kelvin
     calc.t_set_cooling = np.zeros(timesteps) + 600  # in Kelvin
@@ -136,14 +136,14 @@ def run_case10(plot_res=False):
     calc.heater_limit = np.zeros((timesteps, 3)) + 1e10
     calc.cooler_limit = np.zeros((timesteps, 3)) - 1e10
 
-    calc.internal_gains_rad = source_igRad
-    calc.internal_gains = Q_ig
+    calc.sim_vars["internal_gains_rad"] = source_igRad
+    calc.sim_vars["internal_gains"] = Q_ig
 
     calc.solar_rad_in = solarRad_win_in
 
-    calc.equal_air_temp = weatherTemperature
+    calc.sim_vars["equal_air_temp"] = weatherTemperature
 
-    calc.equal_air_temp = calc._eq_air_temp(
+    calc.sim_vars["equal_air_temp"] = calc._eq_air_temp(
         h_sol=solarRad_wall, t_black_sky=t_black_sky)
 
     t_air, q_air_hc = calc.simulate()
