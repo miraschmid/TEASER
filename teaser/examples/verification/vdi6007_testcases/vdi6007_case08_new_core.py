@@ -52,7 +52,7 @@ def run_case8(plot_res=False):
     solarRad_win = q_sol_rad_win_raw[0:24, :]
     solarRad_win[solarRad_win > 100] = solarRad_win[solarRad_win > 100] * 0.15
     solarRad_win_adj = np.repeat(solarRad_win, times_per_hour, axis=0)
-    solarRad_win_in = np.tile(solarRad_win_adj.T, 60).T
+    solarRad_win_in = np.tile(solarRad_win_adj.T, 60)
 
     ref_file = 'case08_q_sol_wall.csv'
     ref_path = os.path.join(this_path, 'inputs', ref_file)
@@ -96,7 +96,9 @@ def run_case8(plot_res=False):
     calc.sim_vars["internal_gains_rad"] = source_igRad
     calc.sim_vars["internal_gains"] = Q_ig
 
-    calc.solar_rad_in = solarRad_win_in
+    len_transp_areas = len(calc.thermal_zone.model_attr.transparent_areas)
+    for i in range(len_transp_areas):
+        calc.sim_vars[f"solar_rad_in_{i}"] = solarRad_win_in[i]
 
     calc.sim_vars["equal_air_temp"] = calc._eq_air_temp(
         h_sol=solarRad_wall_tiled,

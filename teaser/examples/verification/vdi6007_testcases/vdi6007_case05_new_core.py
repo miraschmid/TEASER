@@ -80,7 +80,9 @@ def run_case5(plot_res=False):
     calc.sim_vars["internal_gains"] = Q_ig
 
     calc.sim_vars["equal_air_temp"] = equalAirTemp
-    calc.solar_rad_in = solarRad_in
+    len_transp_areas = len(calc.thermal_zone.model_attr.transparent_areas)
+    for i in range(len_transp_areas):
+        calc.sim_vars[f"solar_rad_in_{i}"] = 0
 
     t_air, q_air_hc = calc.simulate()
 

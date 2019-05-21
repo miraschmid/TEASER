@@ -46,7 +46,7 @@ def run_case12(plot_res=False):
     solarRad = solarRad_raw[0:24]
     solarRad[solarRad > 100] = solarRad[solarRad > 100] * 0.15
     solarRad_adj = np.repeat(solarRad, times_per_hour)
-    solarRad_in = np.array([np.tile(solarRad_adj, 60)]).T
+    solarRad_in = np.array([np.tile(solarRad_adj, 60)])
 
     this_path = os.path.dirname(os.path.abspath(__file__))
     ref_file = 'case05_t_amb.csv'
@@ -90,7 +90,11 @@ def run_case12(plot_res=False):
     calc.sim_vars["internal_gains"] = Q_ig
 
     calc.sim_vars["equal_air_temp"] = equalAirTemp
-    calc.solar_rad_in = solarRad_in
+
+    len_transp_areas = len(calc.thermal_zone.model_attr.transparent_areas)
+    for i in range(len_transp_areas):
+        calc.sim_vars[f"solar_rad_in_{i}"] = solarRad_in[i]
+
     calc.sim_vars["vent_rate"] = ventRate
 
     t_air, q_air_hc = calc.simulate()

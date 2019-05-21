@@ -37,7 +37,10 @@ def run_case2(plot_res=False):
 
     calc = VDICore(tz)
     calc.sim_vars["equal_air_temp"] = 295.15
-    calc.solar_rad_in = np.zeros((timesteps, 1))
+
+    len_transp_areas = len(calc.thermal_zone.model_attr.transparent_areas)
+    for i in range(len_transp_areas):
+        calc.sim_vars[f"solar_rad_in_{i}"] = 0
 
     calc.t_set_heating = np.zeros(timesteps)  # in Kelvin
     calc.t_set_cooling = np.zeros(timesteps) + 600  # in Kelvin
