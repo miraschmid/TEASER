@@ -1037,10 +1037,12 @@ class VDICore(object):
         # self.indoor_air_temperature = np.array(t_air)
         # self.q_flow_heater_cooler = np.array(q_air_hc)
 
+        data_sim = self.sim_vars
+
         if self.debug is False:
-            return self.sim_vars["t_air"], self.sim_vars["q_air_hc"]
+            return data_sim["t_air"], data_sim["q_air_hc"]
         elif self.debug is True:
-            return self.sim_vars
+            return data_sim
 
     def calc_splitfactors(self, cols, a_array, a_ext, a_win):
         """
