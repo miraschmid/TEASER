@@ -180,8 +180,8 @@ def plot_result(res, ref, title, temperature_or_heat, res_raw=None):
     plt.legend()
     plt.ylabel(y_label_bottom)
     plt.xticks([4 * i for i in range(7)])
-    plt.xlim([1, 48])
-    # plt.xlim([1, 24])
+    # plt.xlim([1, 48])
+    plt.xlim([1, 24])
     plt.xlabel("Time in h")
 
     plt.show()

@@ -115,14 +115,17 @@ def run_case11(plot_res=False):
 
     calc.sim_vars["internal_gains_rad"] = prepare_internal_gains_rad(timesteps_day)
 
-    #calc.debug = True
+    # calc.debug = True
 
     calc.simulate()
 
     T_air_mean = hourly_average(
         data=calc.sim_vars["t_air"] - 273.15, times_per_hour=times_per_hour
     )
-    Q_hc_mean = hourly_average(data=calc.sim_vars["q_air_hc"], times_per_hour=times_per_hour)
+    Q_hc_mean = hourly_average(
+        data=calc.sim_vars["q_air_hc"] + calc.sim_vars["q_iw_hc"],
+        times_per_hour=times_per_hour,
+    )
 
     Q_hc_1 = Q_hc_mean[0:24]
     Q_hc_10 = Q_hc_mean[216:240]
