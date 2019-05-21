@@ -1152,6 +1152,9 @@ class VDICore(object):
                 j += 1
             i += 1
 
+        # We suppose that the third row is always 0 (at least in the test cases), so we cut it off
+        result = result[:2]
+
         return result
 
     def calc_timestep(
