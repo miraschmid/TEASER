@@ -3427,7 +3427,7 @@ class Test_teaser(object):
         """
         Run VDI 6007 test case 2
         """
-        tuple_res = vdi2_new_core.run_case2(True)
+        tuple_res = vdi2_new_core.run_case2()
 
         #  Check if temperature deviation is below 0.1 Kelvin
         for val in tuple_res:
@@ -3519,7 +3519,7 @@ class Test_teaser(object):
 
         Reference values are taken from VDI 6020 (not from VDI 6007)
         """
-        tuple_res = vdi11_new_core.run_case11(True)
+        tuple_res = vdi11_new_core.run_case11()
 
         #  Check if deviation is within limits
         for i in range(len(tuple_res)):
