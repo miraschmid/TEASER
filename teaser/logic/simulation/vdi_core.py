@@ -124,6 +124,11 @@ class VDICore(object):
         for i in range(len_transp_areas):
             cols.append(f"solar_rad_in_{i}")
 
+        len_area_ow = len(self.thermal_zone.model_attr.outer_wall_areas)
+        for i in range(len_area_ow):
+            cols.append(f"q_solar_rad_iw_{i}")
+            cols.append(f"q_solar_rad_ow_{i}")
+
         idx = np.arange(0, self.stoptime, self.interval)
         self.sim_vars = pd.DataFrame(index=idx, columns=cols)
 
@@ -935,17 +940,27 @@ class VDICore(object):
                 * weighted_g_value
                 * transparent_areas[i]
             )
-        q_solar_rad = np.zeros((self.stoptime, len(area_ow), split_fac_solar.shape[0]))
-        for i in range(len(area_ow)):
-            for j in range(split_fac_solar.shape[0]):
-                q_solar_rad[:, i, j] = (
-                    -self.sim_vars[f"e_solar_rad_{i}"] * split_fac_solar[j, i]
-                )
 
-        self.sim_vars["q_solar_rad_to_in_wall"] = np.sum(q_solar_rad[:, :, 1], axis=1)
-        self.sim_vars["q_solar_rad_to_outer_wall"] = np.sum(
-            q_solar_rad[:, :, 0], axis=1
-        )
+        for i in range(len(area_ow)):
+            self.sim_vars[f"q_solar_rad_iw_{i}"] = 0
+            self.sim_vars[f"q_solar_rad_ow_{i}"] = 0
+
+        for i in range(len(area_ow)):
+            self.sim_vars[f"q_solar_rad_iw_{i}"] = (
+                -self.sim_vars[f"e_solar_rad_{i}"] * split_fac_solar[1, i]
+            )
+            self.sim_vars[f"q_solar_rad_ow_{i}"] = (
+                    -self.sim_vars[f"e_solar_rad_{i}"] * split_fac_solar[0, i]
+            )
+
+        q_solar_rad_ow = []
+        q_solar_rad_iw = []
+        for i in range(len(area_ow)):
+            q_solar_rad_ow.append(f"q_solar_rad_ow_{i}")
+            q_solar_rad_iw.append(f"q_solar_rad_iw_{i}")
+
+        self.sim_vars["q_solar_rad_to_in_wall"] = self.sim_vars[q_solar_rad_iw].sum(axis=1)
+        self.sim_vars["q_solar_rad_to_outer_wall"] = self.sim_vars[q_solar_rad_ow].sum(axis=1)
 
         # TODO: What is krad?
         krad = 1
@@ -1152,7 +1167,7 @@ class VDICore(object):
                 j += 1
             i += 1
 
-        # We suppose that the third row is always 0 (at least in the test cases), so we cut it off
+        # We suppose that the third row is always 0 (at least in the vdi test cases), so we cut it off
         result = result[:2]
 
         return result
