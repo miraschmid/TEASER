@@ -118,6 +118,9 @@ class VDICore(object):
         for i in range(len_transp_areas):
             cols.append(f"e_solar_conv_{i}")
 
+        for i in range(len_transp_areas):
+            cols.append(f"e_solar_rad_{i}")
+
         idx = np.arange(0, self.stoptime, self.interval)
         self.sim_vars = pd.DataFrame(index=idx, columns=cols)
 
@@ -863,9 +866,11 @@ class VDICore(object):
         )
 
         # therm. splitter solar radiative:
-        e_solar_rad = np.zeros((self.stoptime, len(transparent_areas)))
         for i in range(len(transparent_areas)):
-            e_solar_rad[:, i] = (
+            self.sim_vars[f"e_solar_rad_{i}"] = 0
+
+        for i in range(len(transparent_areas)):
+            self.sim_vars[f"e_solar_rad_{i}"] = (
                 self.solar_rad_in[:, i]
                 * (ratio_conv_rad_inner_win - 1)
                 * weighted_g_value
@@ -874,7 +879,7 @@ class VDICore(object):
         q_solar_rad = np.zeros((self.stoptime, len(area_ow), split_fac_solar.shape[0]))
         for i in range(len(area_ow)):
             for j in range(split_fac_solar.shape[0]):
-                q_solar_rad[:, i, j] = -e_solar_rad[:, i] * split_fac_solar[j, i]
+                q_solar_rad[:, i, j] = -self.sim_vars[f"e_solar_rad_{i}"] * split_fac_solar[j, i]
 
         self.sim_vars["q_solar_rad_to_in_wall"] = np.sum(q_solar_rad[:, :, 1], axis=1)
         self.sim_vars["q_solar_rad_to_outer_wall"] = np.sum(
