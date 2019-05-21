@@ -93,9 +93,7 @@ class VDICore(object):
         cols = [
             "outdoor_temp",
             "alpha_rad",
-            # "e_solar_conv",  # TODO: multidimensional array! e_solar_rad too
             "q_solar_conv",
-            # "q_solar_rad",  # TODO: multidimensional
             "q_solar_rad_to_in_wall",
             "q_solar_rad_to_outer_wall",
             "q_loads_rad",
@@ -124,7 +122,7 @@ class VDICore(object):
         self.cooler_limit = [-1e10, -1e10, -1e10]
 
         # time setting for simulation
-        #self.timesteps = 60 * 60 * 24
+        # self.timesteps = 60 * 60 * 24
 
         self.initial_air_temp = 295.15
         self.initial_inner_wall_temp = 295.15
@@ -910,17 +908,6 @@ class VDICore(object):
         # -----------------------Attention revision neccessary!
         # -----------------------Attention revision neccessary!
 
-        # Results' initialization
-        # t_ow = []
-        # t_owi = []
-        # t_iw = []
-        # t_iwi = []
-        # t_air = []
-        # q_air = []
-        # q_air_hc = []
-        # q_iw_hc = []
-        # q_ow_hc = []
-
         # Initial temperatures
         t_ow_prev = self.initial_outer_wall_temp
         t_iw_prev = self.initial_inner_wall_temp
@@ -1019,20 +1006,6 @@ class VDICore(object):
             t_ow_prev = x[0]
             t_iw_prev = x[2]
             t_air_prev = x[4]
-
-        # data_debug = pd.DataFrame(
-        #     data={
-        #         "t_ow": t_ow,
-        #         "t_owi": t_owi,
-        #         "t_iw": t_iw,
-        #         "t_iwi": t_iwi,
-        #         "t_air": t_air,
-        #         "q_air": q_air,
-        #         "q_air_hc": q_air_hc,
-        #         "q_iw_hc": q_iw_hc,
-        #         "q_ow_hc": q_ow_hc,
-        #     }
-        # )
 
         # self.indoor_air_temperature = np.array(t_air)
         # self.q_flow_heater_cooler = np.array(q_air_hc)
