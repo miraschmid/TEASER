@@ -121,8 +121,16 @@ class VDICore(object):
         for i in range(len_transp_areas):
             cols.append(f"e_solar_rad_{i}")
 
+        for i in range(len_transp_areas):
+            cols.append(f"solar_rad_in_{i}")
+
         idx = np.arange(0, self.stoptime, self.interval)
         self.sim_vars = pd.DataFrame(index=idx, columns=cols)
+
+        sol_rad_transp = np.transpose(self._solar_radiation())
+        if sol_rad_transp.size != 0:
+            for i in range(len_transp_areas):
+                self.sim_vars[f"solar_rad_in_{i}"] = sol_rad_transp[i]
 
         #  Todo: Get heater limits from thermal_zone
         self.heater_limit = [1e10, 1e10, 1e10]
@@ -141,7 +149,6 @@ class VDICore(object):
         self.sim_vars["internal_gains"] = 0
         self.sim_vars["internal_gains_rad"] = 0
 
-        self.solar_rad_in = np.transpose(self._solar_radiation())
         # self.equal_air_temp = self._eq_air_temp(h_sol=self.solar_rad_in)
 
         self.t_set_heat_day = (
@@ -455,11 +462,11 @@ class VDICore(object):
             229.2
             / 60
             * (
-                0.000075
-                + 0.001868 * cos_b
-                - 0.032077 * sin_b
-                - 0.014615 * cos_b_2
-                - 0.040890 * sin_b_2
+                0.000_075
+                + 0.001_868 * cos_b
+                - 0.032_077 * sin_b
+                - 0.014_615 * cos_b_2
+                - 0.040_890 * sin_b_2
             )
         )
 
@@ -513,7 +520,7 @@ class VDICore(object):
 
         # Compute airmass
         # Footnote 3 on page 10
-        airmass = math.exp(-0.0001184 * altitude) / (
+        airmass = math.exp(-0.000_118_4 * altitude) / (
             costheta_z + 0.5057 * np.power(96.08 - theta_z, -1.634)
         )
 
@@ -524,11 +531,11 @@ class VDICore(object):
         gsc = 1367  # W/m2
         # Equation 1.4.1b
         gon = gsc * (
-            1.000110
-            + 0.034221 * cos_b
-            + 0.001280 * sin_b
-            + 0.000719 * cos_b_2
-            + 0.000077 * sin_b_2
+            1.000_110
+            + 0.034_221 * cos_b
+            + 0.001_280 * sin_b
+            + 0.000_719 * cos_b_2
+            + 0.000_077 * sin_b_2
         )
 
         # Return results
@@ -657,14 +664,70 @@ class VDICore(object):
 
         f_coeff = np.array(
             [
-                [-0.0083117, 0.5877285, -0.0620636, -0.0596012, 0.0721249, -0.0220216],
-                [0.1299457, 0.6825954, -0.1513752, -0.0189325, 0.065965, -0.0288748],
-                [0.3296958, 0.4868735, -0.2210958, 0.055414, -0.0639588, -0.0260542],
-                [0.5682053, 0.1874525, -0.295129, 0.1088631, -0.1519229, -0.0139754],
-                [0.873028, -0.3920403, -0.3616149, 0.2255647, -0.4620442, 0.0012448],
-                [1.1326077, -1.2367284, -0.4118494, 0.2877813, -0.8230357, 0.0558651],
-                [1.0601591, -1.5999137, -0.3589221, 0.2642124, -1.127234, 0.1310694],
-                [0.677747, -0.3272588, -0.2504286, 0.1561313, -1.3765031, 0.2506212],
+                [
+                    -0.008_311_7,
+                    0.587_728_5,
+                    -0.062_063_6,
+                    -0.059_601_2,
+                    0.072_124_9,
+                    -0.022_021_6,
+                ],
+                [
+                    0.129_945_7,
+                    0.682_595_4,
+                    -0.151_375_2,
+                    -0.018_932_5,
+                    0.065_965,
+                    -0.028_874_8,
+                ],
+                [
+                    0.329_695_8,
+                    0.486_873_5,
+                    -0.221_095_8,
+                    0.055_414,
+                    -0.063_958_8,
+                    -0.026_054_2,
+                ],
+                [
+                    0.568_205_3,
+                    0.187_452_5,
+                    -0.295_129,
+                    0.108_863_1,
+                    -0.151_922_9,
+                    -0.013_975_4,
+                ],
+                [
+                    0.873_028,
+                    -0.392_040_3,
+                    -0.361_614_9,
+                    0.225_564_7,
+                    -0.462_044_2,
+                    0.001_244_8,
+                ],
+                [
+                    1.132_607_7,
+                    -1.236_728_4,
+                    -0.411_849_4,
+                    0.287_781_3,
+                    -0.823_035_7,
+                    0.055_865_1,
+                ],
+                [
+                    1.060_159_1,
+                    -1.599_913_7,
+                    -0.358_922_1,
+                    0.264_212_4,
+                    -1.127_234,
+                    0.131_069_4,
+                ],
+                [
+                    0.677_747,
+                    -0.327_258_8,
+                    -0.250_428_6,
+                    0.156_131_3,
+                    -1.376_503_1,
+                    0.250_621_2,
+                ],
             ]
         )
 
@@ -818,9 +881,7 @@ class VDICore(object):
 
         #  Calculate solar_rad_in with weather
         #  Todo: Set further inputs for _solar_radiation()?
-        #  Todo: Store solar_rad_in on self.?
         #  e.g. albedo=0.2, time_zone=1, altitude=0, location=(49.5, 8.5)
-        # solar_rad_in = np.transpose(self._solar_radiation())
 
         #  Calculate equal_air_temp
         # self.equal_air_temp = self._eq_air_temp(h_sol=self.solar_rad_in)
@@ -844,7 +905,7 @@ class VDICore(object):
 
         for i in range(len(transparent_areas)):
             self.sim_vars[f"e_solar_conv_{i}"] = (
-                self.solar_rad_in[:, i]
+                self.sim_vars[f"solar_rad_in_{i}"]
                 * ratio_conv_rad_inner_win
                 * weighted_g_value
                 * transparent_areas[i]
@@ -854,8 +915,6 @@ class VDICore(object):
         for i in range(len(transparent_areas)):
             e_solar_conv.append(f"e_solar_conv_{i}")
         self.sim_vars["q_solar_conv"] = self.sim_vars[e_solar_conv].sum(axis=1)
-
-        #self.sim_vars["q_solar_conv"] = np.sum(e_solar_conv, axis=1)
 
         # splitters:
         # on each splitter: one output goes to outer wall, one goes to inner
@@ -871,7 +930,7 @@ class VDICore(object):
 
         for i in range(len(transparent_areas)):
             self.sim_vars[f"e_solar_rad_{i}"] = (
-                self.solar_rad_in[:, i]
+                self.sim_vars[f"solar_rad_in_{i}"]
                 * (ratio_conv_rad_inner_win - 1)
                 * weighted_g_value
                 * transparent_areas[i]
@@ -879,7 +938,9 @@ class VDICore(object):
         q_solar_rad = np.zeros((self.stoptime, len(area_ow), split_fac_solar.shape[0]))
         for i in range(len(area_ow)):
             for j in range(split_fac_solar.shape[0]):
-                q_solar_rad[:, i, j] = -self.sim_vars[f"e_solar_rad_{i}"] * split_fac_solar[j, i]
+                q_solar_rad[:, i, j] = (
+                    -self.sim_vars[f"e_solar_rad_{i}"] * split_fac_solar[j, i]
+                )
 
         self.sim_vars["q_solar_rad_to_in_wall"] = np.sum(q_solar_rad[:, :, 1], axis=1)
         self.sim_vars["q_solar_rad_to_outer_wall"] = np.sum(
