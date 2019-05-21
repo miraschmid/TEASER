@@ -114,6 +114,10 @@ class VDICore(object):
             "q_ow_hc",
         ]
 
+        len_transp_areas = len(self.thermal_zone.model_attr.transparent_areas)
+        for i in range(len_transp_areas):
+            cols.append(f"e_solar_conv_{i}")
+
         idx = np.arange(0, self.stoptime, self.interval)
         self.sim_vars = pd.DataFrame(index=idx, columns=cols)
 
@@ -832,16 +836,23 @@ class VDICore(object):
         )
 
         #  convective heat entry from solar irradiation
-        e_solar_conv = np.zeros((self.stoptime, len(transparent_areas)))
+        for i in range(len(transparent_areas)):
+            self.sim_vars[f"e_solar_conv_{i}"] = 0
 
         for i in range(len(transparent_areas)):
-            e_solar_conv[:, i] = (
+            self.sim_vars[f"e_solar_conv_{i}"] = (
                 self.solar_rad_in[:, i]
                 * ratio_conv_rad_inner_win
                 * weighted_g_value
                 * transparent_areas[i]
             )
-        self.sim_vars["q_solar_conv"] = np.sum(e_solar_conv, axis=1)
+
+        e_solar_conv = []
+        for i in range(len(transparent_areas)):
+            e_solar_conv.append(f"e_solar_conv_{i}")
+        self.sim_vars["q_solar_conv"] = self.sim_vars[e_solar_conv].sum(axis=1)
+
+        #self.sim_vars["q_solar_conv"] = np.sum(e_solar_conv, axis=1)
 
         # splitters:
         # on each splitter: one output goes to outer wall, one goes to inner
