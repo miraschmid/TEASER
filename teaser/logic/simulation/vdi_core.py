@@ -68,7 +68,7 @@ class VDICore(object):
 
     """
 
-    def __init__(self, thermal_zone, interval=60, stoptime=5184000):
+    def __init__(self, thermal_zone, interval=60, stoptime=5_184_000):
         """Constructor of DataClass
 
         Parameters
@@ -334,7 +334,7 @@ class VDICore(object):
                 gamma[i] = angle - 180
 
         # Get weather data
-        #  TODO: Check weather
+        # TODO: Check weather
         direct_rad = self.weather_data.weather_df["direct_radiation"]
         diffuse_rad = self.weather_data.weather_df["diffuse_radiation"]
 
@@ -540,6 +540,19 @@ class VDICore(object):
             + 0.000_719 * cos_b_2
             + 0.000_077 * sin_b_2
         )
+
+        res_data = {
+            "omega": omega,
+            "delta": delta,
+            "theta_z": theta_z,
+            "airmass": airmass,
+            "gon": gon,
+        }
+
+        # This doesn't work as i want yet
+        # res_idx = np.arange(0, self.stoptime, self.interval)
+        # res = pd.DataFrame(data=res_data)
+        # res = res.reindex(np.arange(0, self.stoptime, self.interval))
 
         # Return results
         return (omega, delta, theta_z, airmass, gon)
