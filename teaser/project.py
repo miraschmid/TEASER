@@ -15,6 +15,7 @@ import teaser.data.output.ibpsa_output as ibpsa_output
 import teaser.data.output.text_output as text_out
 from teaser.data.dataclass import DataClass
 from teaser.data.weatherdata import WeatherData
+from teaser.data.weatherdata_df import WeatherDataDF
 from teaser.logic.archetypebuildings.bmvbs.office import Office
 from teaser.logic.archetypebuildings.bmvbs.custom.institute import Institute
 from teaser.logic.archetypebuildings.bmvbs.custom.institute4 import Institute4
