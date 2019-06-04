@@ -46,10 +46,11 @@ def run_case1(plot_res=False):
     timesteps_day = int(
         24 * times_per_hour)  # 24 * 60 minute timesteps per day
 
-    tz = prepare_thermal_zone(timesteps, room="S1")
+
+    tz = prepare_thermal_zone(timesteps * 60, room="S1")
 
     calc = VDICore(tz)
-    calc.sim_vars["equal_air_temp"] = np.zeros(timesteps) + 295.15
+    calc.sim_vars["equal_air_temp"] = 295.15
 
     len_transp_areas = len(calc.thermal_zone.model_attr.transparent_areas)
     for i in range(len_transp_areas):

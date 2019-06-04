@@ -66,11 +66,11 @@ def run_case12(plot_res=False):
     ventRate = np.tile(ventRate, 60)
 
     weather = WeatherDataDF()
-    weather.reindex_weather_df(format="seconds")
+    weather.reindex_weather_df(format="minutes")
     weather.weather_df = weather.weather_df[:timesteps]
     weather.weather_df["air_temp"] = weatherTemperature
 
-    tz = prepare_thermal_zone(timesteps, room="S1", weather=weather)
+    tz = prepare_thermal_zone(timesteps * 60, room="S1", weather=weather)
 
     # Adjust settings for this test case
     tz.model_attr.transparent_areas = [7]

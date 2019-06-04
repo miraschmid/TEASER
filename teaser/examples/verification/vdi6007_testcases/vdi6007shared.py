@@ -37,7 +37,7 @@ def prepare_thermal_zone(timesteps, room, weather=None):
     if weather is None:
         weather = WeatherDataDF()
         weather.weather_df["air_temp"] = 295.15
-        weather.reindex_weather_df(format="seconds")
+        weather.reindex_weather_df(format="minutes")
         weather.weather_df = weather.weather_df.loc[:timesteps-1]
 
     prj = Project()
@@ -122,7 +122,7 @@ def hourly_average(data, times_per_hour):
 
     result = np.array(
         [
-            np.mean(data[i * times_per_hour : (i + 1) * times_per_hour])
+            np.mean(data[i * times_per_hour: (i + 1) * times_per_hour])
             for i in range(24 * 60)
         ]
     )

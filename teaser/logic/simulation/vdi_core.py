@@ -68,7 +68,7 @@ class VDICore(object):
 
     """
 
-    def __init__(self, thermal_zone, interval=1, stoptime=86400):
+    def __init__(self, thermal_zone, interval=60, stoptime=5184000):
         """Constructor of DataClass
 
         Parameters
@@ -221,8 +221,6 @@ class VDICore(object):
         t_eq_air
         """
         #  Todo: Cleanup docstring
-
-        timesteps = 60 * 60 * 24
 
         #  Todo: Where to store t_balck_sky?
         # t_black_sky = np.zeros(timesteps) + 273.15
@@ -900,9 +898,7 @@ class VDICore(object):
 
         #  Radiative heat transfer coefficient between inner and outer walls
         #  in W/m2K
-        self.sim_vars["alpha_rad"] = (
-            np.zeros(self.stoptime) + self.thermal_zone.model_attr.alpha_rad_inner_mean
-        )
+        self.sim_vars["alpha_rad"] = self.thermal_zone.model_attr.alpha_rad_inner_mean
 
         #  convective heat entry from solar irradiation
         for i in range(len(transparent_areas)):
@@ -950,7 +946,7 @@ class VDICore(object):
                 -self.sim_vars[f"e_solar_rad_{i}"] * split_fac_solar[1, i]
             )
             self.sim_vars[f"q_solar_rad_ow_{i}"] = (
-                    -self.sim_vars[f"e_solar_rad_{i}"] * split_fac_solar[0, i]
+                -self.sim_vars[f"e_solar_rad_{i}"] * split_fac_solar[0, i]
             )
 
         q_solar_rad_ow = []
@@ -959,8 +955,12 @@ class VDICore(object):
             q_solar_rad_ow.append(f"q_solar_rad_ow_{i}")
             q_solar_rad_iw.append(f"q_solar_rad_iw_{i}")
 
-        self.sim_vars["q_solar_rad_to_in_wall"] = self.sim_vars[q_solar_rad_iw].sum(axis=1)
-        self.sim_vars["q_solar_rad_to_outer_wall"] = self.sim_vars[q_solar_rad_ow].sum(axis=1)
+        self.sim_vars["q_solar_rad_to_in_wall"] = self.sim_vars[q_solar_rad_iw].sum(
+            axis=1
+        )
+        self.sim_vars["q_solar_rad_to_outer_wall"] = self.sim_vars[q_solar_rad_ow].sum(
+            axis=1
+        )
 
         # TODO: What is krad?
         krad = 1
@@ -1007,7 +1007,7 @@ class VDICore(object):
 
         dt = 60
 
-        for t in range(self.stoptime):
+        for t in range(0, self.stoptime, self.interval):
             # Common equations
             A = np.zeros((9, 9))
             rhs = np.zeros(A.shape[0])
@@ -1072,13 +1072,14 @@ class VDICore(object):
             rhs[5] = density_air * heat_capac_air * volume * t_air_prev / dt
 
             # Calculate current time step
+            n = int(t / self.interval)
             x = self.calc_timestep(
                 A=A,
                 rhs=rhs,
-                t_set_heating=self.t_set_heating[t],
-                t_set_cooling=self.t_set_cooling[t],
-                heater_limit=self.heater_limit[t, :],
-                cooler_limit=self.cooler_limit[t, :],
+                t_set_heating=self.t_set_heating[n],
+                t_set_cooling=self.t_set_cooling[n],
+                heater_limit=self.heater_limit[n, :],
+                cooler_limit=self.cooler_limit[n, :],
                 heater_order=self.heater_order,
                 cooler_order=self.cooler_order,
             )

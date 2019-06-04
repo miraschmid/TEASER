@@ -89,7 +89,7 @@ def run_case11(plot_res=False):
     timesteps = 24 * 60 * times_per_hour  # 60 days
     timesteps_day = int(24 * times_per_hour)
 
-    tz = prepare_thermal_zone(timesteps, room="S1")
+    tz = prepare_thermal_zone(timesteps * 60, room="S1")
     tz.volume = 0  # Seems to have no effect on results
     tz.model_attr.alpha_comb_inner_iw = 3  # Improvement, see doc-string
     # tz.model_attr.alpha_conv_outer_ow = 25  # No effect because only used in equalAirTemp
