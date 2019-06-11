@@ -30,7 +30,8 @@ class WeatherDataDF(object):
 
     def __init__(
             self,
-            path=None):
+            path=None,
+            try_format="old"):
 
         self.path = path
         self.weather_df = None
@@ -44,10 +45,10 @@ class WeatherDataDF(object):
             self.weather_df["sky_radiation"] = ""
             self.weather_df["earth_radiation"] = ""
         else:
-            self.load_weather(path=self.path)
+            self.load_weather(path=self.path, try_format=try_format)
 
 
-    def load_weather(self, path):
+    def load_weather(self, path, try_format):
         """This function loads weather data directly from TRY format.
 
         Sets class attributes with weather data as numpy array or pandas
@@ -55,24 +56,34 @@ class WeatherDataDF(object):
 
         Parameters
         ----------
-        path: string
+        path: str
             path of teaserXML file
+        try_format: str
+            Format of TRY file {"old", "new"}
 
         """
 
-        weather_data = np.genfromtxt(
+        if try_format == "old":
+            skip = 35
+        elif try_format == "new":
+            skip = 33
+
+        weather_data = pd.read_csv(
             path,
-            skip_header=38,
-            usecols=(8, 13, 14, 16, 17),
-            encoding="ISO 8859-1")
+            comment="*",
+            delim_whitespace=True,
+            skiprows=skip,
+            encoding="ISO 8859-1",
+            usecols=["t", "B", "D", "A", "E"],
+            )
 
         index = np.arange(0, 31536000, 3600)
         self.weather_df = pd.DataFrame(index=index)
-        self.weather_df["air_temp"] = weather_data[:, 0]
-        self.weather_df["direct_radiation"] = weather_data[:, 1]
-        self.weather_df["diffuse_radiation"] = weather_data[:, 2]
-        self.weather_df["sky_radiation"] = weather_data[:, 3]
-        self.weather_df["earth_radiation"] = weather_data[:, 4]
+        self.weather_df["air_temp"] = weather_data["t"]
+        self.weather_df["direct_radiation"] = weather_data["B"]
+        self.weather_df["diffuse_radiation"] = weather_data["D"]
+        self.weather_df["sky_radiation"] = weather_data["A"]
+        self.weather_df["earth_radiation"] = weather_data["E"]
 
 
     def reindex_weather_df(self, format):
@@ -81,7 +92,7 @@ class WeatherDataDF(object):
 
         Parameters
         ----------
-        timestep: string
+        timestep: str
             Desired timestep
             {"minutes", "seconds"}
 
