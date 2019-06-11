@@ -341,14 +341,17 @@ class VDICore(object):
         geometry = self.get_geometry(
             initial_time=initial_time,
             dt=dt,
-            timesteps=timesteps,
             time_zone=time_zone,
             location=location,
             altitude=altitude,
         )
 
         #  Extract geometry values
-        (omega, delta, theta_z, airmass, gon) = geometry
+        omega = geometry["omega"]
+        delta = geometry["delta"]
+        theta_z = geometry["theta_z"]
+        airmass = geometry["airmass"]
+        gon = geometry["gon"]
 
         # iterate over all surfaces (given in beta/gamma)
         results = []
@@ -380,7 +383,6 @@ class VDICore(object):
         self,
         initial_time,
         dt,
-        timesteps,
         time_zone=1,
         location=(50.76, 6.07),
         altitude=0,
@@ -410,22 +412,24 @@ class VDICore(object):
 
         Returns
         -------
-        omega : array_like
-            Hour angle. The angular displacement of the sun east or west of the
-            local meridian due to rotation of the earth on its axis at 15 degrees
-            per hour; morning negative, afternoon positive
-        delta : array_like
-            Declination. The angular position of the sun at solar noon (i.e., when
-            the sun is on the local meridian) with respect to the plane of the
-            equator, north positive; −23.45 <= delta <= 23.45
-        theta_z : array_like
-            Zenith angle. The angle between the vertical and the line to the sun,
-            that is, the angle of incidence of beam radiation on a horizontal
-            surface; 0 <= theta_z <= 90
-        airmass
-        gon
+        res: pandas.DataFrame
+            Contains results
+            (omega: Hour angle. The angular displacement of the sun east or west of the
+                local meridian due to rotation of the earth on its axis at 15 degrees
+                per hour; morning negative, afternoon positive
+            delta: Declination. The angular position of the sun at solar noon (i.e., when
+                the sun is on the local meridian) with respect to the plane of the
+                equator, north positive; −23.45 <= delta <= 23.45
+            theta_z: Zenith angle. The angle between the vertical and the line to the sun,
+                that is, the angle of incidence of beam radiation on a horizontal
+                surface; 0 <= theta_z <= 90
+            airmass
+            gon)
+
         """
         #  TODO: Add missing explanations to docstring
+
+        timesteps = self.stoptime / self.interval
 
         # Define pi
         pi = math.pi
@@ -550,12 +554,11 @@ class VDICore(object):
         }
 
         # This doesn't work as i want yet
-        # res_idx = np.arange(0, self.stoptime, self.interval)
-        # res = pd.DataFrame(data=res_data)
-        # res = res.reindex(np.arange(0, self.stoptime, self.interval))
+        res_idx = np.arange(0, self.stoptime, self.interval)
+        res = pd.DataFrame(data=res_data, index=res_idx)
 
         # Return results
-        return (omega, delta, theta_z, airmass, gon)
+        return res
 
     def get_incidence_angle(self, beta, gamma, phi, omega, delta):
         """
