@@ -70,7 +70,8 @@ def run_case5(plot_res=False):
     calc = VDICore(tz)
     calc.equal_air_temp = np.zeros(timesteps) + 295.15
 
-    calc.t_set_heating = np.zeros(timesteps)  # in Kelvin
+    # TODO: Check if t_set_heating is defined like this in the VDI
+    calc.sim_vars["t_set_heating"] = 0  # in Kelvin
     calc.sim_vars["t_set_cooling"] = 600  # in Kelvin
 
     calc.heater_limit = np.zeros((timesteps, 3)) + 1e10

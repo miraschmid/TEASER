@@ -130,7 +130,7 @@ def run_case10(plot_res=False):
 
     calc.sim_vars["equal_air_temp"] = np.zeros(timesteps) + 295.15
 
-    calc.t_set_heating = np.zeros(timesteps)  # in Kelvin
+    calc.sim_vars["t_set_heating"] = np.zeros(timesteps)  # in Kelvin
     calc.sim_vars["t_set_cooling"] = 600  # in Kelvin
 
     calc.heater_limit = np.zeros((timesteps, 3)) + 1e10

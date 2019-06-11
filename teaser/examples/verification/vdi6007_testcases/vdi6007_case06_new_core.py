@@ -47,7 +47,7 @@ def run_case6(plot_res=False):
     for i in range(len_transp_areas):
         calc.sim_vars[f"solar_rad_in_{i}"] = 0
 
-    calc.t_set_heating = prepare_set_temperature(timesteps_day)
+    calc.sim_vars["t_set_heating"] = prepare_set_temperature(timesteps_day)
     calc.sim_vars["t_set_cooling"] = prepare_set_temperature(timesteps_day)
 
     calc.heater_limit = np.zeros((timesteps, 3)) + 1e10

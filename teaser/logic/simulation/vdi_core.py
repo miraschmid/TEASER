@@ -109,6 +109,7 @@ class VDICore(object):
             "q_iw_hc",
             "q_ow_hc",
             "t_set_cooling",
+            "t_set_heating",
         ]
 
         len_transp_areas = len(self.thermal_zone.model_attr.transparent_areas)
@@ -184,7 +185,15 @@ class VDICore(object):
             )
             + 273.15
         )
-        self.t_set_heating = np.tile(self.t_set_heat_day, 365)
+        t_set_heating = np.tile(self.t_set_heat_day, int(self.stoptime / (24 * 3600)))
+        idx = np.arange(0, self.stoptime, 3600)
+        t_set_heating = pd.DataFrame(index=idx, data=t_set_heating)
+        t_set_heating = t_set_heating.reindex(
+            np.arange(0, self.stoptime, self.interval)
+        )
+        t_set_heating = t_set_heating.interpolate(method="nearest")
+        self.sim_vars["t_set_heating"] = t_set_heating
+
         self.sim_vars["t_set_cooling"] = 273.15 + 1000
 
         self.sim_vars["vent_rate"] = 0 + (
@@ -379,12 +388,7 @@ class VDICore(object):
         return res
 
     def get_geometry(
-        self,
-        initial_time,
-        dt,
-        time_zone=1,
-        location=(50.76, 6.07),
-        altitude=0,
+        self, initial_time, dt, time_zone=1, location=(50.76, 6.07), altitude=0
     ):
         """
         This function computes hour angle, declination, zenith angle of the sun
@@ -1091,7 +1095,7 @@ class VDICore(object):
             x = self.calc_timestep(
                 A=A,
                 rhs=rhs,
-                t_set_heating=self.t_set_heating[n],
+                t_set_heating=self.sim_vars.at[t, "t_set_heating"],
                 t_set_cooling=self.sim_vars.at[t, "t_set_cooling"],
                 heater_limit=self.heater_limit[n, :],
                 cooler_limit=self.cooler_limit[n, :],

@@ -56,7 +56,9 @@ def run_case1(plot_res=False):
     for i in range(len_transp_areas):
         calc.sim_vars[f"solar_rad_in_{i}"] = 0
 
-    calc.t_set_heating = np.zeros(timesteps)  # in Kelvin
+    # TODO: Check if t_set_heating is defined like this in the VDI
+    calc.sim_vars["t_set_heating"] = 0  # in Kelvin
+
     calc.sim_vars["t_set_cooling"] = 600  # in Kelvin
 
     calc.heater_limit = np.zeros((timesteps, 3)) + 1e10
