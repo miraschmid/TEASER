@@ -93,7 +93,7 @@ def run_case9(plot_res=False):
     calc = VDICore(tz)
 
     calc.t_set_heating = np.zeros(timesteps)  # in Kelvin
-    calc.t_set_cooling = np.zeros(timesteps) + 600  # in Kelvin
+    calc.sim_vars["t_set_cooling"] = 600  # in Kelvin
 
     calc.heater_limit = np.zeros((timesteps, 3)) + 1e10
     calc.cooler_limit = np.zeros((timesteps, 3)) - 1e10

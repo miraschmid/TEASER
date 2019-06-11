@@ -105,7 +105,7 @@ def run_case11(plot_res=False):
         calc.sim_vars[f"solar_rad_in_{i}"] = 0
 
     calc.t_set_heating = prepare_set_temperature(timesteps_day)
-    calc.t_set_cooling = prepare_set_temperature(timesteps_day)
+    calc.sim_vars["t_set_cooling"] = prepare_set_temperature(timesteps_day)
 
     calc.heater_limit = np.zeros((timesteps, 3))
     calc.heater_limit[:, 0] = 500

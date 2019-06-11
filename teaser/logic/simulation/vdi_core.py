@@ -40,10 +40,6 @@ class VDICore(object):
         TEASER instance of Building
     room_air_temperature: np.array or pd.series
         simulation results for room air temperature in degree Celsius
-    heat_load: np.array         #TODO: this is not used!
-        simulation results for heating load in Watt
-    cooling_load: np.array      #TODO: this is not used!
-        simulation results for cooling load in Watt
     heater_limit: list (of floats)
         List with heater limit values in Watt
     cooler_limit: list (of floats)
@@ -112,6 +108,7 @@ class VDICore(object):
             "q_air_hc",
             "q_iw_hc",
             "q_ow_hc",
+            "t_set_cooling",
         ]
 
         len_transp_areas = len(self.thermal_zone.model_attr.transparent_areas)
@@ -188,7 +185,7 @@ class VDICore(object):
             + 273.15
         )
         self.t_set_heating = np.tile(self.t_set_heat_day, 365)
-        self.t_set_cooling = np.zeros(self.stoptime) + 273.15 + 1000
+        self.sim_vars["t_set_cooling"] = 273.15 + 1000
 
         self.sim_vars["vent_rate"] = 0 + (
             self.thermal_zone.volume * self.thermal_zone.infiltration_rate / 3600
@@ -1095,7 +1092,7 @@ class VDICore(object):
                 A=A,
                 rhs=rhs,
                 t_set_heating=self.t_set_heating[n],
-                t_set_cooling=self.t_set_cooling[n],
+                t_set_cooling=self.sim_vars.at[t, "t_set_cooling"],
                 heater_limit=self.heater_limit[n, :],
                 cooler_limit=self.cooler_limit[n, :],
                 heater_order=self.heater_order,
