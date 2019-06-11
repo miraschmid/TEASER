@@ -304,7 +304,6 @@ class VDICore(object):
 
         """
         #  FIXME: Deal with input values (to weather / project?)
-        timesteps = 60 * 60 * 24
         dt = 3600
         initial_time = 0
 
