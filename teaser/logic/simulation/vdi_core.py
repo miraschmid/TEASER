@@ -1097,8 +1097,8 @@ class VDICore(object):
                 rhs=rhs,
                 t_set_heating=self.sim_vars.at[t, "t_set_heating"],
                 t_set_cooling=self.sim_vars.at[t, "t_set_cooling"],
-                heater_limit=self.heater_limit[n, :],
-                cooler_limit=self.cooler_limit[n, :],
+                heater_limit=self.heater_limit,
+                cooler_limit=self.cooler_limit,
                 heater_order=self.heater_order,
                 cooler_order=self.cooler_order,
             )

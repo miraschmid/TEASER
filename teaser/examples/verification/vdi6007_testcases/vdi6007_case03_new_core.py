@@ -45,8 +45,8 @@ def run_case3(plot_res=False):
     calc.sim_vars["t_set_heating"] = 0  # in Kelvin
     calc.sim_vars["t_set_cooling"] = 600  # in Kelvin
 
-    calc.heater_limit = np.zeros((timesteps, 3)) + 1e10
-    calc.cooler_limit = np.zeros((timesteps, 3)) - 1e10
+    calc.heater_limit = np.zeros(3) + 1e10
+    calc.cooler_limit = np.zeros(3) - 1e10
 
     q_ig = np.zeros(timesteps_day)
     for q in range(int(6 * timesteps_day / 24), int(18 * timesteps_day / 24)):

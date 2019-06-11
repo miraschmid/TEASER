@@ -47,8 +47,8 @@ def run_case2(plot_res=False):
 
     calc.sim_vars["t_set_cooling"] = 600  # in Kelvin
 
-    calc.heater_limit = np.zeros((timesteps, 3)) + 1e10
-    calc.cooler_limit = np.zeros((timesteps, 3)) - 1e10
+    calc.heater_limit = np.zeros(3) + 1e10
+    calc.cooler_limit = np.zeros(3) - 1e10
 
     calc.sim_vars["internal_gains_rad"] = prepare_internal_gains_rad(timesteps_day)
 

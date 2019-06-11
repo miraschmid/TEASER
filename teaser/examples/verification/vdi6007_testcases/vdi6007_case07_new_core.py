@@ -50,10 +50,10 @@ def run_case7(plot_res=False):
     calc.sim_vars["t_set_heating"] = prepare_set_temperature(timesteps_day)
     calc.sim_vars["t_set_cooling"] = prepare_set_temperature(timesteps_day)
 
-    calc.heater_limit = np.zeros((timesteps, 3))
-    calc.heater_limit[:, 0] = 500
-    calc.cooler_limit = np.zeros((timesteps, 3))
-    calc.cooler_limit[:, 0] = - 500
+    calc.heater_limit = np.zeros(3)
+    calc.heater_limit[0] = 500
+    calc.cooler_limit = np.zeros(3)
+    calc.cooler_limit[0] = - 500
 
     calc.sim_vars["internal_gains_rad"] = prepare_internal_gains_rad(timesteps_day)
 
