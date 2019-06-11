@@ -301,6 +301,8 @@ class VDICore(object):
 
         Returns
         -------
+        res: pandas.DataFrame
+            Contains results
 
         """
         #  FIXME: Deal with input values (to weather / project?)
@@ -376,7 +378,8 @@ class VDICore(object):
             results.append(radiation)
 
         # return radiation on each surface
-        return np.array(results)
+        res = pd.DataFrame(data=results)
+        return res
 
     def get_geometry(
         self,
