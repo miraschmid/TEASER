@@ -74,13 +74,19 @@ class WeatherDataDF(object):
             usecols=["t", "B", "D", "A", "E"],
             )
 
+        t = np.array(weather_data["t"])
+        b = np.array(weather_data["B"])
+        d = np.array(weather_data["D"])
+        a = np.array(weather_data["A"])
+        e = np.array(weather_data["E"])
+
         index = np.arange(0, 31536000, 3600)
         self.weather_df = pd.DataFrame(index=index)
-        self.weather_df["air_temp"] = weather_data["t"]
-        self.weather_df["direct_radiation"] = weather_data["B"]
-        self.weather_df["diffuse_radiation"] = weather_data["D"]
-        self.weather_df["sky_radiation"] = weather_data["A"]
-        self.weather_df["earth_radiation"] = weather_data["E"]
+        self.weather_df["air_temp"] = t
+        self.weather_df["direct_radiation"] = b
+        self.weather_df["diffuse_radiation"] = d
+        self.weather_df["sky_radiation"] = a
+        self.weather_df["earth_radiation"] = e
 
 
     def reindex_weather_df(self, format):

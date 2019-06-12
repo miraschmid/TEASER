@@ -77,7 +77,7 @@ def vdi_example_6007(thermal_zone):
 
 if __name__ == '__main__':
 
-    import teaser.data.weatherdata as weatherdata
+    import teaser.data.weatherdata_df as weatherdata_df
 
     #  Get TEASER project with residential type building
     prj = gen_res_type_example_building()
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     thermal_zone = prj.buildings[0].thermal_zones[0]
 
     #  Todo: Necessary to generate separate weather and store on prj?
-    weather = weatherdata.WeatherData()
+    weather = weatherdata_df.WeatherDataDF()
     prj.weather_data = weather
 
     print('UA value before retrofiting:')
