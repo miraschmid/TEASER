@@ -14,7 +14,9 @@ class WeatherDataDF(object):
     Parameters
     ----------
     path : str
-        Path to the weather file.
+        Path to the weather file
+    skip_rows: int
+        Rows to skip in TRY file (start at index 0) before column names
 
     Attributes
     ----------
@@ -31,7 +33,7 @@ class WeatherDataDF(object):
     def __init__(
             self,
             path=None,
-            try_format="old"):
+            skip_rows=35):
 
         self.path = path
         self.weather_df = None
@@ -45,10 +47,10 @@ class WeatherDataDF(object):
             self.weather_df["sky_radiation"] = ""
             self.weather_df["earth_radiation"] = ""
         else:
-            self.load_weather(path=self.path, try_format=try_format)
+            self.load_weather(path=self.path, skip_rows=skip_rows)
 
 
-    def load_weather(self, path, try_format):
+    def load_weather(self, path, skip_rows):
         """This function loads weather data directly from TRY format.
 
         Sets class attributes with weather data as numpy array or pandas
@@ -58,21 +60,16 @@ class WeatherDataDF(object):
         ----------
         path: str
             path of teaserXML file
-        try_format: str
-            Format of TRY file {"old", "new"}
+        skip_rows: int
+            Rows to skip in TRY file (start at index 0) before column names
 
         """
-
-        if try_format == "old":
-            skip = 35
-        elif try_format == "new":
-            skip = 33
 
         weather_data = pd.read_csv(
             path,
             comment="*",
             delim_whitespace=True,
-            skiprows=skip,
+            skiprows=skip_rows,
             encoding="ISO 8859-1",
             usecols=["t", "B", "D", "A", "E"],
             )
