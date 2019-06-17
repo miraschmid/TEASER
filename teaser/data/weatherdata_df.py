@@ -37,6 +37,7 @@ class WeatherDataDF(object):
 
         self.path = path
         self.weather_df = None
+        self.altitude = None
 
         if self.path is None:
             index = np.arange(0, 31536000, 3600)
