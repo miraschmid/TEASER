@@ -135,9 +135,10 @@ class VDICore(object):
             for i in range(len_transp_areas):
                 self.sim_vars[f"solar_rad_in_{i}"] = sol_rad_transp[i]
 
-        #  Todo: Get heater limits from thermal_zone
-        self.heater_limit = [1e10, 1e10, 1e10]
-        self.cooler_limit = [-1e10, -1e10, -1e10]
+        heat_load = thermal_zone.model_attr.heat_load
+        cool_load = thermal_zone.model_attr.cool_load
+        self.heater_limit = [heat_load, heat_load, heat_load]
+        self.cooler_limit = [cool_load, cool_load, cool_load]
 
         # time setting for simulation
         # self.timesteps = 60 * 60 * 24
