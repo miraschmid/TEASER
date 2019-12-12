@@ -13,7 +13,6 @@ import teaser.data.output.teaserjson_output as tjson_out
 import teaser.data.output.aixlib_output as aixlib_output
 import teaser.data.output.ibpsa_output as ibpsa_output
 from teaser.data.dataclass import DataClass
-from teaser.data.weatherdata import WeatherData
 from teaser.data.weatherdata_df import WeatherDataDF
 from teaser.logic.archetypebuildings.bmvbs.office import Office
 from teaser.logic.archetypebuildings.bmvbs.custom.institute import Institute
@@ -152,7 +151,7 @@ class Project(object):
         ass_error_type = "wrong weather data type "
         assert path.endswith('.mos'), ass_error_type
 
-        self.weather_data = WeatherData(path=path)
+        self.weather_data = WeatherDataDF(path=path)
 
     def calc_all_buildings(self, raise_errors=False):
         """Calculates values for all project buildings
