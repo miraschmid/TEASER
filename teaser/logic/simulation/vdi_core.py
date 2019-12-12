@@ -16,6 +16,7 @@ from __future__ import division
 import math
 import numpy as np
 import pandas as pd
+import warnings
 
 
 class VDICore(object):
@@ -78,6 +79,11 @@ class VDICore(object):
             (should be a multiple of the interval)
 
         """
+
+        warnings.warn(
+            "This simulation core cannot yet be used to simulate buildings, the results are still wrong!",
+            UserWarning,
+        )
 
         self.thermal_zone = thermal_zone
         self.interval = interval
