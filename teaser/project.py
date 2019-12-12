@@ -8,11 +8,10 @@ import warnings
 import os
 import re
 import teaser.logic.utilities as utilities
-import teaser.data.input.teaserxml_input as txml_in
-import teaser.data.output.teaserxml_output as txml_out
+import teaser.data.input.teaserjson_input as tjson_in
+import teaser.data.output.teaserjson_output as tjson_out
 import teaser.data.output.aixlib_output as aixlib_output
 import teaser.data.output.ibpsa_output as ibpsa_output
-import teaser.data.output.text_output as text_out
 from teaser.data.dataclass import DataClass
 from teaser.data.weatherdata import WeatherData
 from teaser.data.weatherdata_df import WeatherDataDF
@@ -33,16 +32,21 @@ from teaser.logic.archetypebuildings.urbanrenet.est8a import EST8a
 from teaser.logic.archetypebuildings.urbanrenet.est8b import EST8b
 from teaser.logic.archetypebuildings.tabula.de.singlefamilyhouse import \
     SingleFamilyHouse
+from teaser.logic.archetypebuildings.tabula.dk.singlefamilyhouse import \
+    SingleFamilyHouse as SingleFamilyHouse_DK
 from teaser.logic.archetypebuildings.tabula.de.terracedhouse import \
     TerracedHouse
+from teaser.logic.archetypebuildings.tabula.dk.terracedhouse import \
+    TerracedHouse as TerracedHouse_DK
 from teaser.logic.archetypebuildings.tabula.de.multifamilyhouse import \
     MultiFamilyHouse
 from teaser.logic.archetypebuildings.tabula.de.apartmentblock import \
     ApartmentBlock
+from teaser.logic.archetypebuildings.tabula.dk.apartmentblock import \
+    ApartmentBlock as ApartmentBlock_DK
 from teaser.logic.archetypebuildings.bmvbs.singlefamilydwelling import \
     SingleFamilyDwelling
 from teaser.logic.simulation.modelicainfo import ModelicaInfo
-import teaser.data.output.citygml_output as citygml_out
 import teaser.data.input.citygml_input as citygml_in
 
 
@@ -70,11 +74,11 @@ class Project(object):
         Name of the Project (default is 'Project')
     modelica_info : instance of ModelicaInfo
         TEASER instance of ModelicaInfo to store Modelica related
-        information, like used compiler, runtime, etc.
+        information, like used compiler, start and stop time, etc.
     buildings : list
         List of all buildings in one project, instances of Building()
     data : instance of DataClass
-        TEASER instance of DataClass containing XML binding classes
+        TEASER instance of DataClass containing JSON binding classes
     weather_file_path : str
         Absolute path to weather file used for Modelica simulation. Default
         weather file can be find in inputdata/weatherdata.
@@ -459,10 +463,10 @@ class Project(object):
 
         This function adds a residential archetype building to the TEASER
         project. You need to specify the method of the archetype generation.
-        Currently TEASER supports only method according 'iwu' and 'urbanrenet'
-        for residential buildings ('tabula_de' to follow soon). Further the
-        type
-        of usage needs to be specified. Currently TEASER supports one type of
+        Currently TEASER supports only method according 'iwu', 'urbanrenet',
+        'tabula_de' and 'tabula_dk' for residential buildings. Further the
+        type of usage needs to be specified. Currently TEASER supports one type
+        of
         residential building for 'iwu' and eleven types for 'urbanrenet'. For
         more information on specific archetype buildings and methods, please
         read the docs of archetype classes.
@@ -544,18 +548,21 @@ class Project(object):
         type_bldg : Instance of Archetype Building
 
         """
-        ass_error_method = "only'tabula_de', 'iwu' and 'urbanrenet' " \
+        ass_error_method = "only'tabula_de', 'tabula_dk', 'iwu' and "\
+                           "'urbanrenet' " \
                            "are valid methods for residential archetype " \
                            "generation"
 
-        assert method in ['tabula_de', 'iwu', 'urbanrenet'], ass_error_method
+        assert method in ['tabula_de', 'iwu', 'urbanrenet', 'tabula_dk'], \
+            ass_error_method
 
         ass_error_apart = (
             "The keyword number_of_apartments does not have any "
             "effect on archetype generation for 'iwu' or"
             "'tabula_de', see docs for more information")
 
-        if method in ['iwu', 'tabula_de'] and number_of_apartments is not None:
+        if method in ['iwu', 'tabula_de', 'tabula_dk'] and \
+                number_of_apartments is not None:
             warnings.warn(ass_error_apart)
 
         if method == 'tabula_de':
@@ -626,6 +633,62 @@ class Project(object):
                     with_ahu,
                     construction_type)
 
+                type_bldg.generate_archetype()
+                return type_bldg
+
+        elif method == 'tabula_dk':
+
+            if self.data is None:
+                self.data = DataClass(used_statistic=method)
+            elif self.data.used_statistic != 'tabula_dk':
+                self.data = DataClass(used_statistic=method)
+
+            ass_error_usage_tabula = "only 'single_family_house',"
+            "'terraced_house', 'apartment_block' are"
+            "valid usages for iwu archetype method"
+            assert usage in [
+                'single_family_house', 'terraced_house', 'apartment_block'],\
+                ass_error_usage_tabula
+
+            if usage == 'single_family_house':
+
+                type_bldg = SingleFamilyHouse_DK(
+                    self,
+                    name,
+                    year_of_construction,
+                    number_of_floors,
+                    height_of_floors,
+                    net_leased_area,
+                    with_ahu,
+                    construction_type)
+                type_bldg.generate_archetype()
+                return type_bldg
+
+            elif usage == 'terraced_house':
+
+                type_bldg = TerracedHouse_DK(
+                    self,
+                    name,
+                    year_of_construction,
+                    number_of_floors,
+                    height_of_floors,
+                    net_leased_area,
+                    with_ahu,
+                    construction_type)
+                type_bldg.generate_archetype()
+                return type_bldg
+
+            elif usage == 'apartment_block':
+
+                type_bldg = ApartmentBlock_DK(
+                    self,
+                    name,
+                    year_of_construction,
+                    number_of_floors,
+                    height_of_floors,
+                    net_leased_area,
+                    with_ahu,
+                    construction_type)
                 type_bldg.generate_archetype()
                 return type_bldg
 
@@ -873,348 +936,10 @@ class Project(object):
             used_library=self._used_library_calc)
         return type_bldg
 
-    def type_bldg_institute(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu=True,
-            office_layout=None,
-            window_layout=None,
-            construction_type=None):
-        """Old function, consider rewriting your code
-
-        This is an old function for archetype generation, consider rewriting
-        your code to use Project.add_non_residential(). This function will be
-        eliminated within the next versions
-        """
-
-        warnings.warn("You are using an old function for archetype "
-                      "generation, consider rewriting you code to use "
-                      "Project.add_non_residential(). This function will be "
-                      "eliminated within the next versions")
-        type_bldg = Institute(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu,
-            office_layout,
-            window_layout,
-            construction_type)
-
-        type_bldg.generate_archetype()
-        type_bldg.calc_building_parameter(
-            number_of_elements=self._number_of_elements_calc,
-            merge_windows=self._merge_windows_calc,
-            used_library=self._used_library_calc)
-        return type_bldg
-
-    def type_bldg_institute4(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu=True,
-            office_layout=None,
-            window_layout=None,
-            construction_type=None):
-        """Old function, consider rewriting your code
-
-        This is an old function for archetype generation, consider rewriting
-        your code to use Project.add_non_residential(). This function will be
-        eliminated within the next versions
-        """
-
-        warnings.warn("You are using an old function for archetype "
-                      "generation, consider rewriting you code to use "
-                      "Project.add_non_residential(). This function will be "
-                      "eliminated within the next versions")
-
-        type_bldg = Institute4(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu,
-            office_layout,
-            window_layout,
-            construction_type)
-
-        type_bldg.generate_archetype()
-        type_bldg.calc_building_parameter(
-            number_of_elements=self._number_of_elements_calc,
-            merge_windows=self._merge_windows_calc,
-            used_library=self._used_library_calc)
-        return type_bldg
-
-    def type_bldg_institute8(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu=True,
-            office_layout=None,
-            window_layout=None,
-            construction_type=None):
-        """Old function, consider rewriting your code
-
-        This is an old function for archetype generation, consider rewriting
-        your code to use Project.add_non_residential(). This function will be
-        eliminated within the next versions
-        """
-
-        warnings.warn("You are using an old function for archetype "
-                      "generation, consider rewriting you code to use "
-                      "Project.add_non_residential(). This function will be "
-                      "eliminated within the next versions")
-        type_bldg = Institute8(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu,
-            office_layout,
-            window_layout,
-            construction_type)
-
-        type_bldg.generate_archetype()
-        type_bldg.calc_building_parameter(
-            number_of_elements=self._number_of_elements_calc,
-            merge_windows=self._merge_windows_calc,
-            used_library=self._used_library_calc)
-        return type_bldg
-
-    def type_bldg_est1a(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu=False,
-            neighbour_buildings=None,
-            construction_type=None):
-        """Old function, consider rewriting your code
-
-        This is an old function for archetype generation, consider rewriting
-        your code to use Project.add_non_residential(). This function will be
-        eliminated within the next versions
-        """
-
-        warnings.warn("You are using an old function for archetype "
-                      "generation, consider rewriting you code to use "
-                      "Project.add_non_residential(). This function will be "
-                      "eliminated within the next versions")
-
-        type_bldg = EST1a(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu,
-            neighbour_buildings,
-            construction_type)
-
-        type_bldg.generate_archetype()
-        type_bldg.calc_building_parameter(
-            number_of_elements=self._number_of_elements_calc,
-            merge_windows=self._merge_windows_calc,
-            used_library=self._used_library_calc)
-        return type_bldg
-
-    def type_bldg_est1b(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu=False,
-            neighbour_buildings=None,
-            construction_type=None,
-            number_of_apartments=None):
-        """Old function, consider rewriting your code
-
-        This is an old function for archetype generation, consider rewriting
-        your code to use Project.add_non_residential(). This function will be
-        eliminated within the next versions
-        """
-
-        warnings.warn("You are using an old function for archetype "
-                      "generation, consider rewriting you code to use "
-                      "Project.add_non_residential(). This function will be "
-                      "eliminated within the next versions")
-
-        type_bldg = EST1b(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu,
-            neighbour_buildings,
-            construction_type,
-            number_of_apartments)
-
-        type_bldg.generate_archetype()
-        type_bldg.calc_building_parameter(
-            number_of_elements=self._number_of_elements_calc,
-            merge_windows=self._merge_windows_calc,
-            used_library=self._used_library_calc)
-        return type_bldg
-
-    def type_bldg_est4b(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu=False,
-            neighbour_buildings=None,
-            construction_type=None,
-            number_of_apartments=None):
-        """Old function, consider rewriting your code
-
-        This is an old function for archetype generation, consider rewriting
-        your code to use Project.add_non_residential(). This function will be
-        eliminated within the next versions
-        """
-
-        warnings.warn("You are using an old function for archetype "
-                      "generation, consider rewriting you code to use "
-                      "Project.add_non_residential(). This function will be "
-                      "eliminated within the next versions")
-
-        type_bldg = EST4b(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu,
-            neighbour_buildings,
-            construction_type,
-            number_of_apartments)
-
-        type_bldg.generate_archetype()
-        type_bldg.calc_building_parameter(
-            number_of_elements=self._number_of_elements_calc,
-            merge_windows=self._merge_windows_calc,
-            used_library=self._used_library_calc)
-        return type_bldg
-
-    def type_bldg_est7(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu=False,
-            neighbour_buildings=None,
-            construction_type=None,
-            number_of_apartments=None):
-        """Old function, consider rewriting your code
-
-        This is an old function for archetype generation, consider rewriting
-        your code to use Project.add_non_residential(). This function will be
-        eliminated within the next versions
-        """
-
-        warnings.warn("You are using an old function for archetype "
-                      "generation, consider rewriting you code to use "
-                      "Project.add_non_residential(). This function will be "
-                      "eliminated within the next versions")
-
-        type_bldg = EST7(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu,
-            neighbour_buildings,
-            construction_type,
-            number_of_apartments)
-
-        type_bldg.generate_archetype()
-        type_bldg.calc_building_parameter(
-            number_of_elements=self._number_of_elements_calc,
-            merge_windows=self._merge_windows_calc,
-            used_library=self._used_library_calc)
-        return type_bldg
-
-    def type_bldg_residential(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu=False,
-            residential_layout=None,
-            neighbour_buildings=None,
-            attic=None,
-            cellar=None,
-            dormer=None,
-            construction_type=None):
-        """Old function, consider rewriting your code
-
-        This is an old function for archetype generation, consider rewriting
-        your code to use Project.add_non_residential(). This function will be
-        eliminated within the next versions
-        """
-
-        warnings.warn("You are using an old function for archetype "
-                      "generation, consider rewriting you code to use "
-                      "Project.add_residential(). This function will be "
-                      "eliminated within the next versions")
-
-        type_bldg = SingleFamilyDwelling(
-            self,
-            name,
-            year_of_construction,
-            number_of_floors,
-            height_of_floors,
-            net_leased_area,
-            with_ahu,
-            residential_layout,
-            neighbour_buildings,
-            attic,
-            cellar,
-            dormer,
-            construction_type)
-
-        type_bldg.generate_archetype()
-        type_bldg.calc_building_parameter(
-            number_of_elements=self._number_of_elements_calc,
-            merge_windows=self._merge_windows_calc,
-            used_library=self._used_library_calc)
-        return type_bldg
-
     def save_project(self, file_name=None, path=None):
-        """Saves the project to a tXML file
+        """Saves the project to a JSON file
 
-        calls the function save_teaser_xml in data.TeaserXML.py
+        Calls the function save_teaser_json in data.output.teaserjson_output
 
         Parameters
         ----------
@@ -1235,51 +960,21 @@ class Project(object):
         else:
             new_path = os.path.join(path, name)
 
-        txml_out.save_teaser_xml(new_path, self)
+        tjson_out.save_teaser_json(new_path, self)
 
     def load_project(self, path):
-        """Loads the project from a teaserXML file (new format)
+        """Load the project from a json file (new format).
 
-        calls the function load_teaser_xml in data.TeaserXML.py
+        Calls the function load_teaser_json.
 
         Parameters
         ----------
         path : string
-            full path to a teaserXML file
+            full path to a json file
 
         """
 
-        txml_in.load_teaser_xml(path, self)
-
-    def save_citygml(self, file_name=None, path=None):
-        """Saves the project to a CityGML file
-
-        calls the function save_gml in data.CityGML we make use of CityGML core
-        and EnergyADE to store semantic information
-
-
-        Parameters
-        ----------
-
-        file_name : string
-            name of the new file
-        path : string
-            if the Files should not be stored in OutputData, an alternative
-            can be specified
-
-        """
-        if file_name is None:
-            name = self.name
-        else:
-            name = file_name
-
-        if path is None:
-            new_path = os.path.join(utilities.get_default_path(), name)
-        else:
-            new_path = os.path.join(path, name)
-            utilities.create_path(utilities.get_full_path(path))
-
-        citygml_out.save_gml(self, new_path)
+        tjson_in.load_teaser_json(path, self)
 
     def load_citygml(self, path=None):
         """Loads buildings from a citygml file
@@ -1425,31 +1120,6 @@ class Project(object):
                         path=path)
         return path
 
-    def export_parameters_txt(self, path=None):
-        """Exports parameters of all buildings in a readable text file
-
-        Parameters
-        ----------
-
-        path : string
-            if the Files should not be stored in OutputData, an alternative
-            can be specified
-        """
-
-        if path is None:
-            path = os.path.join(
-                utilities.get_default_path(),
-                self.name)
-        else:
-            path = os.path.join(
-                path,
-                self.name)
-
-        text_out.export_parameters_txt(
-            prj=self,
-            path=path)
-        return path
-
     def set_default(self, load_data=None):
         """Sets all attributes to default
 
@@ -1476,12 +1146,6 @@ class Project(object):
 
         self.buildings = []
 
-        self.load_data = load_data
-
-        self._number_of_elements_calc = 2
-        self._merge_windows_calc = False
-        self._used_library_calc = "AixLib"
-
         if load_data is True:
             self.data = self.instantiate_data_class()
         elif not load_data:
@@ -1489,12 +1153,6 @@ class Project(object):
         else:
             self.data = None
 
-        self.name = "Project"
-
-        self.weather_file_header = "wetter"
-        self.weather_file_path = "modelica://AixLib/Resources/WeatherData/" \
-                                 "TRY2010_12_Jahr_Modelica-Library.txt"
-        self.buildings = []
         self._number_of_elements_calc = 2
         self._merge_windows_calc = False
         self._used_library_calc = "AixLib"
